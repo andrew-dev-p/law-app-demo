@@ -1,26 +1,106 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base */
+  --background: 220 14% 96%; /* #F4F5F7 */
+  --foreground: 215 28% 17%; /* #1E293B */
+
+  /* Surfaces */
+  --card: 0 0% 100%; /* #FFFFFF */
+  --card-foreground: 215 28% 17%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 215 28% 17%;
+
+  /* Brand */
+  --primary: 219 42% 19%; /* #1C2A44 (nav) */
+  --primary-foreground: 0 0% 98%;
+  --accent: 32 100% 63%; /* #FF8C42 */
+  --accent-foreground: 0 0% 100%;
+
+  /* Semantic */
+  --success: 167 46% 34%; /* #2E7D6C */
+  --success-foreground: 0 0% 100%;
+
+  /* Neutrals */
+  --secondary: 220 14% 92%;
+  --secondary-foreground: 215 28% 17%;
+  --muted: 220 16% 94%;
+  --muted-foreground: 215 14% 34%; /* #4B5563 */
+  --destructive: 0 72.2% 50.6%;
+  --destructive-foreground: 0 0% 98%;
+
+  /* Borders & Inputs */
+  --border: 220 14% 90%; /* #E5E7EB-ish */
+  --input: 220 14% 90%;
+  --ring: 219 42% 19%;
+
+  /* Radius */
+  --radius: 0.5rem;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Map CSS vars to Tailwind tokens */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 220 20% 8%;
+    --foreground: 0 0% 98%;
+
+    --card: 220 18% 12%;
+    --card-foreground: 0 0% 98%;
+    --popover: 220 18% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 219 42% 19%; /* keep brand */
+    --primary-foreground: 0 0% 98%;
+    --accent: 32 100% 63%;
+    --accent-foreground: 0 0% 100%;
+
+    --success: 167 46% 40%;
+    --success-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 18%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 220 14% 18%;
+    --muted-foreground: 220 10% 65%;
+
+    --border: 220 12% 22%;
+    --input: 220 12% 22%;
+    --ring: 219 42% 70%;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
+
+/* Utility: hide scrollbars while allowing scroll */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
