@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 
 type IntakeState = {
   personal: { firstName: string; lastName: string; email: string };
@@ -19,6 +18,9 @@ export default function DashboardPage() {
   const [checkins, setCheckins] = useState<any[]>([]);
   const [providers, setProviders] = useState<any[]>([]);
   const [demand, setDemand] = useState<{ draftReady: boolean; approved: boolean } | null>(null);
+  const [offers, setOffers] = useState<any[]>([]);
+  const [settlement, setSettlement] = useState<any>(null);
+  const [litigation, setLitigation] = useState<any>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -33,160 +35,167 @@ export default function DashboardPage() {
         if (p) setProviders(JSON.parse(p));
         const d = window.localStorage.getItem("demand-state");
         if (d) setDemand(JSON.parse(d));
+        const o = window.localStorage.getItem("negotiations-offers");
+        if (o) setOffers(JSON.parse(o));
+        const s = window.localStorage.getItem("settlement-state");
+        if (s) setSettlement(JSON.parse(s));
+        const l = window.localStorage.getItem("litigation-state");
+        if (l) setLitigation(JSON.parse(l));
       } catch {}
     }
   }, []);
 
-  const intakeCompletion = useMemo(() => {
-    if (!intake) return 0;
-    let score = 0;
-    let total = 5; // personal, incident, medical, uploads, review
-    const p = intake.personal;
-    if (p.firstName && p.lastName && p.email) score++;
-    const i = intake.incident;
-    if (i.date && i.type) score++;
-    const m = intake.medical;
-    if (m.seenDoctor) score++;
-    if ((intake.uploads?.length ?? 0) > 0) score++;
-    if (intake.agreed) score++;
-    return Math.round((score / total) * 100);
-  }, [intake]);
-
-  const claimMilestones = useMemo(() => {
-    const items = [
-      { id: "intake", label: "Intake Submitted", done: intakeStep >= 5 },
-      { id: "records", label: "Records Requested", done: providers.some((p) => p.recordsRequested) || (intake?.medical?.seenDoctor === "yes") || false },
-      { id: "bills", label: "Bills Collection", done: providers.some((p) => p.billsReceived) || (intake?.uploads?.length ?? 0) > 0 },
-      { id: "demand", label: "Demand Drafting", done: intakeCompletion >= 60 && (providers.some((p) => p.recordsReceived) || (intake?.uploads?.length ?? 0) > 0) },
-      { id: "review", label: "Demand Ready for Review", done: !!demand?.draftReady },
-      { id: "approve", label: "Demand Approved to Send", done: !!demand?.approved },
+  // Checklist steps
+  const steps = useMemo(() => {
+    const intakeDone = intakeStep >= 5;
+    const checkinDone = (checkins?.length ?? 0) > 0;
+    const providersOrDocs = (providers?.length ?? 0) > 0 || (intake?.uploads?.length ?? 0) > 0;
+    const demandDraft = !!demand?.draftReady;
+    const demandApproved = !!demand?.approved;
+    const counterSent = offers?.some((o) => o.from === "Client");
+    const settlementInProgress = !!settlement?.fundsReceived || !!settlement?.releaseSigned;
+    const settlementDone = !!settlement?.fundsReceived;
+    const litigationReferred = !!litigation?.referred;
+    return [
+      {
+        id: "intake",
+        title: "Complete your intake",
+        desc: "Tell us about you and the incident.",
+        href: "/intake",
+        done: intakeDone,
+      },
+      {
+        id: "checkins",
+        title: "Add a medical check-in",
+        desc: "Log your pain level, visits, and notes.",
+        href: "/check-ins",
+        done: checkinDone,
+      },
+      {
+        id: "providers",
+        title: "Add providers and docs",
+        desc: "List your treatment providers and upload bills/records.",
+        href: "/bills-records",
+        done: providersOrDocs,
+      },
+      {
+        id: "demandDraft",
+        title: "Generate demand draft",
+        desc: "Prepare a draft demand to the insurer.",
+        href: "/demand-review",
+        done: demandDraft,
+      },
+      {
+        id: "demandApprove",
+        title: "Approve demand to send",
+        desc: "Review the draft and approve for sending.",
+        href: "/demand-review",
+        done: demandApproved,
+      },
+      {
+        id: "negotiations",
+        title: "Review offer and send counter",
+        desc: "Track offers and propose a counter if needed.",
+        href: "/negotiations",
+        done: counterSent,
+      },
+      {
+        id: "settlement",
+        title: "Finalize settlement",
+        desc: "Sign release, record funds, and pay providers.",
+        href: "/settlement",
+        done: settlementDone,
+        inProgress: settlementInProgress && !settlementDone,
+      },
+      {
+        id: "litigation",
+        title: "Consider litigation (if needed)",
+        desc: "Review options and refer to litigation.",
+        href: "/litigation",
+        done: litigationReferred,
+        optional: true,
+      },
     ];
-    const completed = items.filter((x) => x.done).length;
-    return { items, completed, total: items.length, percent: Math.round((completed / items.length) * 100) };
-  }, [intake, intakeStep, intakeCompletion]);
+  }, [intake, intakeStep, checkins, providers, demand, offers, settlement, litigation]);
+
+  const counts = useMemo(() => {
+    const required = steps.filter((s) => !s.optional);
+    const done = required.filter((s) => s.done).length;
+    const percent = Math.round((done / required.length) * 100);
+    const currentIndex = required.findIndex((s) => !s.done);
+    const current = currentIndex === -1 ? required.length - 1 : currentIndex;
+    return { done, total: required.length, percent, currentIndex: currentIndex === -1 ? required.length : currentIndex };
+  }, [steps]);
+
+  const currentStepIndex = counts.currentIndex;
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Case Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Track progress across intake, records, demand, and more.</p>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild>
-            <a href="/intake">Update Intake</a>
-          </Button>
-          <Button asChild variant="secondary">
-            <a href="/claims">Claims Overview</a>
-          </Button>
-        </div>
+    <div className="max-w-3xl mx-auto p-6 space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Your Case Checklist</h1>
+        <p className="text-sm text-muted-foreground">Follow the steps below. We’ll guide you through each one.</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Claims Milestones</CardTitle>
-            <CardDescription>Overall progress across key steps.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{claimMilestones.completed} of {claimMilestones.total} completed</span>
-              <span className="text-muted-foreground">{claimMilestones.percent}%</span>
+      <Card>
+        <CardHeader>
+          <CardTitle>Steps</CardTitle>
+          <CardDescription>Complete the current step; the next one will appear.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4 rounded-md border p-3 bg-card">
+            <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+              <span>Progress</span>
+              <span>
+                {counts.done} of {counts.total} | {counts.percent}%
+              </span>
             </div>
-            <Progress value={claimMilestones.percent} />
-            <ul className="mt-4 space-y-2">
-              {claimMilestones.items.map((m) => (
-                <li key={m.id} className="flex items-center justify-between rounded-md border px-3 py-2">
-                  <span className="text-sm">{m.label}</span>
-                  {m.done ? <Badge variant="success">Done</Badge> : <Badge variant="outline">Pending</Badge>}
+            <Progress value={counts.percent} className="h-2" />
+          </div>
+          <ul className="space-y-2">
+            {steps.map((s, i) => {
+              const isCurrent = i === currentStepIndex;
+              return (
+                <li key={s.id} className="rounded-md border overflow-hidden">
+                  <div className="flex items-center justify-between px-3 py-2">
+                    <div className="flex items-center gap-3">
+                      <span
+                        aria-hidden
+                        className={`inline-flex h-5 w-5 items-center justify-center rounded-full border text-xs ${
+                          s.done ? "bg-[hsl(var(--success))] text-white border-transparent" : isCurrent ? "border-[hsl(var(--primary))]" : "border-border"
+                        }`}
+                      >
+                        {s.done ? "✓" : i + 1}
+                      </span>
+                      <div>
+                        <div className="text-sm font-medium">{s.title}{s.optional ? " (optional)" : ""}</div>
+                        {!isCurrent && (
+                          <div className="text-xs text-muted-foreground">{s.done ? "Completed" : "Pending"}</div>
+                        )}
+                      </div>
+                    </div>
+                    {!s.done && !isCurrent && (
+                      <a href={s.href} className="text-xs underline">Open</a>
+                    )}
+                  </div>
+                  {isCurrent && !s.done && (
+                    <div className="border-t px-3 py-3 bg-card">
+                      <p className="text-sm text-muted-foreground mb-3">{s.desc}</p>
+                      <div className="flex items-center gap-2">
+                        <Button asChild>
+                          <a href={s.href}>Go to {s.title.split(" ")[0]}</a>
+                        </Button>
+                        {i + 1 < steps.length && (
+                          <span className="text-xs text-muted-foreground">Next up: {steps[i + 1].title}</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Intake Status</CardTitle>
-            <CardDescription>Completion of your intake flow.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{intakeCompletion}%</span>
-              <Badge variant={intakeStep >= 5 ? "success" : "outline"}>{intakeStep >= 5 ? "Submitted" : "In progress"}</Badge>
-            </div>
-            <Progress value={intakeCompletion} />
-            <div className="mt-4 space-y-1 text-sm text-muted-foreground">
-              <div>Personal: {intake?.personal?.firstName ? "✓" : "—"}</div>
-              <div>Incident: {intake?.incident?.date && intake?.incident?.type ? "✓" : "—"}</div>
-              <div>Medical: {intake?.medical?.seenDoctor ? "✓" : "—"}</div>
-              <div>Documents: {(intake?.uploads?.length ?? 0) > 0 ? `${intake?.uploads?.length} file(s)` : "—"}</div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Next Actions</CardTitle>
-            <CardDescription>Keep momentum by handling these.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm">
-              {(!intake || !intake.personal?.firstName) && (
-                <li className="rounded-md border px-3 py-2">Complete personal information in <a href="/intake" className="underline">Intake</a>.</li>
-              )}
-              {intake && !intake.medical?.seenDoctor && (
-                <li className="rounded-md border px-3 py-2">Tell us if you’ve seen a doctor (Intake → Medical).</li>
-              )}
-              {intake && (intake.uploads?.length ?? 0) === 0 && (
-                <li className="rounded-md border px-3 py-2">Upload photos, reports, or bills in <a href="/intake" className="underline">Intake</a>.</li>
-              )}
-              {providers.length === 0 && (
-                <li className="rounded-md border px-3 py-2">Add your treatment providers in <a href="/bills-records" className="underline">Bills & Records</a>.</li>
-              )}
-              {!providers.some((p) => p.recordsRequested) && (
-                <li className="rounded-md border px-3 py-2">Mark records as requested for at least one provider.</li>
-              )}
-              {intake && intakeCompletion >= 60 && !demand?.draftReady && (
-                <li className="rounded-md border px-3 py-2">Visit <a href="/demand-review" className="underline">Demand Review</a> to generate your draft.</li>
-              )}
-              {demand?.draftReady && !demand?.approved && (
-                <li className="rounded-md border px-3 py-2">Open <a href="/demand-review" className="underline">Demand Review</a> to approve and send.</li>
-              )}
-            </ul>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Medical Check-ins</CardTitle>
-            <CardDescription>Status of care and recent updates.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="flex items-center justify-between rounded-md border px-3 py-2">
-              <span>Seen a doctor</span>
-              <Badge variant={intake?.medical?.seenDoctor === "yes" ? "success" : "destructive"}>{intake?.medical?.seenDoctor === "yes" ? "Yes" : "No"}</Badge>
-            </div>
-            <div className="flex items-center justify-between rounded-md border px-3 py-2">
-              <span>Last check-in</span>
-              <Badge variant={checkins[0]?.dateISO ? "success" : "outline"}>{checkins[0]?.dateISO || "—"}</Badge>
-            </div>
-            <div className="flex items-center justify-between rounded-md border px-3 py-2">
-              <span>Avg. pain (last 5)</span>
-              <Badge variant={checkins.length ? (Math.round((checkins.slice(0, 5).reduce((a: number, b: any) => a + b.pain, 0) / Math.min(5, checkins.length)) * 10) / 10) >= 6 ? "warning" : "success" : "outline"}>
-                {checkins.length ? Math.round((checkins.slice(0, 5).reduce((a: number, b: any) => a + b.pain, 0) / Math.min(5, checkins.length)) * 10) / 10 : "—"}
-              </Badge>
-            </div>
-            <div className="pt-2">
-              <Button asChild>
-                <a href="/check-ins">Add Check-in</a>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              );
+            })}
+          </ul>
+        </CardContent>
+      </Card>
     </div>
   );
 }
