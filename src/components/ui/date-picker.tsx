@@ -33,7 +33,7 @@ export function DatePicker({ id, value, onChange, placeholder = "Pick a date", d
           variant="outline"
           className={cn(
             // Make it look like an input, not a primary-outlined button
-            "h-9 w-full justify-start text-left font-normal border-input bg-background text-foreground hover:bg-accent",
+            "h-9 w-full justify-start text-left font-normal border-input bg-[hsl(var(--background))] text-foreground hover:bg-accent",
             !value && "text-muted-foreground",
             className
           )}
@@ -43,7 +43,7 @@ export function DatePicker({ id, value, onChange, placeholder = "Pick a date", d
           {selected ? selected.toLocaleDateString() : placeholder}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto p-0">
+      <PopoverContent align="start" className="w-auto p-0 h-[331px]">
         <Calendar
           mode="single"
           selected={selected}
