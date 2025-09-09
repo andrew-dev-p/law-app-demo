@@ -16,7 +16,7 @@ const PopoverContent = React.forwardRef<
     align={align}
     sideOffset={sideOffset}
     className={cn(
-      "z-50 w-56 rounded-md border bg-card text-foreground shadow-md outline-none",
+      "z-50 w-56 rounded-md border border-card-border bg-card text-foreground shadow-md outline-none",
       className
     )}
     {...props}
@@ -25,4 +25,3 @@ const PopoverContent = React.forwardRef<
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
 export { Popover, PopoverTrigger, PopoverContent };
-

@@ -47,7 +47,7 @@ export default function DashboardPage() {
 
   // Checklist steps
   const steps = useMemo(() => {
-    const intakeDone = intakeStep >= 5;
+    const intakeDone = intakeStep >= 6;
     const checkinDone = (checkins?.length ?? 0) > 0;
     const providersOrDocs = (providers?.length ?? 0) > 0 || (intake?.uploads?.length ?? 0) > 0;
     const demandDraft = !!demand?.draftReady;
@@ -130,7 +130,7 @@ export default function DashboardPage() {
   const currentStepIndex = counts.currentIndex;
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
+    <div className="w-full p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Your Case Checklist</h1>
         <p className="text-sm text-muted-foreground">Follow the steps below. We’ll guide you through each one.</p>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
           <CardDescription>Complete the current step; the next one will appear.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-4 rounded-md border p-3 bg-card">
+          <div className="mb-4 rounded-md border border-card-border p-3 bg-card">
             <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
               <span>Progress</span>
               <span>
@@ -155,7 +155,7 @@ export default function DashboardPage() {
             {steps.map((s, i) => {
               const isCurrent = i === currentStepIndex;
               return (
-                <li key={s.id} className="rounded-md border overflow-hidden">
+                <li key={s.id} className="rounded-md border border-card-border overflow-hidden">
                   <div className="flex items-center justify-between px-3 py-2">
                     <div className="flex items-center gap-3">
                       <span
@@ -174,11 +174,11 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     {!s.done && !isCurrent && (
-                      <a href={s.href} className="text-xs underline">Open</a>
+                      <a href={s.href} className="text-xs text-primary hover:text-primary/80">Open</a>
                     )}
                   </div>
                   {isCurrent && !s.done && (
-                    <div className="border-t px-3 py-3 bg-card">
+                    <div className="border-t border-card-border px-3 py-3 bg-card">
                       <p className="text-sm text-muted-foreground mb-3">{s.desc}</p>
                       <div className="flex items-center gap-2">
                         <Button asChild>

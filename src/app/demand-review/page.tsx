@@ -33,7 +33,7 @@ export default function DemandReviewPage() {
   }, [demand]);
 
   const prereqs = useMemo(() => {
-    const intakeSubmitted = intakeStep >= 5;
+    const intakeSubmitted = intakeStep >= 6;
     const anyRecords = providers.some((p) => p.recordsReceived);
     const anyBills = providers.some((p) => p.billsReceived) || (intake?.uploads?.length ?? 0) > 0;
     return {
@@ -49,7 +49,7 @@ export default function DemandReviewPage() {
   const reset = () => setDemand({ draftReady: false, approved: false });
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="w-full p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Demand Review</h1>
@@ -67,15 +67,15 @@ export default function DemandReviewPage() {
           <CardDescription>These help ensure the demand is well-supported.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
-          <div className="flex items-center justify-between rounded-md border px-3 py-2">
+          <div className="flex items-center justify-between rounded-md border border-card-border px-3 py-2">
             <span>Intake submitted</span>
             <Badge variant={prereqs.intakeSubmitted ? "success" : "destructive"}>{prereqs.intakeSubmitted ? "Yes" : "No"}</Badge>
           </div>
-          <div className="flex items-center justify-between rounded-md border px-3 py-2">
+          <div className="flex items-center justify-between rounded-md border border-card-border px-3 py-2">
             <span>Any medical records received</span>
             <Badge variant={prereqs.anyRecords ? "success" : "destructive"}>{prereqs.anyRecords ? "Yes" : "No"}</Badge>
           </div>
-          <div className="flex items-center justify-between rounded-md border px-3 py-2">
+          <div className="flex items-center justify-between rounded-md border border-card-border px-3 py-2">
             <span>Any bills or documents on file</span>
             <Badge variant={prereqs.anyBills ? "success" : "destructive"}>{prereqs.anyBills ? "Yes" : "No"}</Badge>
           </div>
@@ -98,7 +98,7 @@ export default function DemandReviewPage() {
             <CardDescription>Summary for demo purposes, not legally binding.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <div className="rounded-md border p-3">
+            <div className="rounded-md border border-card-border p-3">
               <div className="font-medium">Insured demand letter</div>
               <div className="text-muted-foreground mt-1">
                 Claimant: {intake?.personal?.firstName} {intake?.personal?.lastName || "—"}. Incident type: {intake?.incident?.type || "—"} on {intake?.incident?.date || "—"}.

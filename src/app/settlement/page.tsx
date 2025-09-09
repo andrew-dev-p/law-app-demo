@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -85,7 +86,7 @@ export default function SettlementPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="w-full p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Settlement</h1>
@@ -105,7 +106,7 @@ export default function SettlementPage() {
           <CardDescription>Record agreed amount and release status.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3 max-w-3xl">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <Label htmlFor="agreed">Agreed settlement</Label>
               <Input id="agreed" placeholder="$50,000" value={state.agreedAmount?.toString() ?? ""}
@@ -132,11 +133,11 @@ export default function SettlementPage() {
           <CardDescription>Log receipt and amount for distribution.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3 max-w-3xl">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <Label htmlFor="funds-date">Date received</Label>
-              <Input id="funds-date" type="date" value={state.fundsReceivedDate ?? ""}
-                     onChange={(e) => setState((s) => ({ ...s, fundsReceivedDate: e.target.value }))} />
+              <DatePicker id="funds-date" value={state.fundsReceivedDate ?? ""}
+                     onChange={(v) => setState((s) => ({ ...s, fundsReceivedDate: v }))} />
             </div>
             <div>
               <Label htmlFor="funds-amt">Amount received</Label>
@@ -148,7 +149,7 @@ export default function SettlementPage() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 max-w-3xl">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="fee">Attorney fee %</Label>
               <Input id="fee" type="number" min={0} max={60} value={state.feePercent}
@@ -161,7 +162,7 @@ export default function SettlementPage() {
             </div>
           </div>
 
-          <div className="rounded-md border p-4 text-sm grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-md border border-card-border p-4 text-sm grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div><div className="text-muted-foreground">Funds received</div><div className="font-medium">${totals.funds.toLocaleString()}</div></div>
             <div><div className="text-muted-foreground">Attorney fee</div><div className="font-medium">${totals.fee.toLocaleString()} ({state.feePercent}%)</div></div>
             <div><div className="text-muted-foreground">Case costs</div><div className="font-medium">${totals.costs.toLocaleString()}</div></div>
@@ -178,7 +179,7 @@ export default function SettlementPage() {
           <CardDescription>Add payees and track payment status.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-2 max-w-2xl">
+          <div className="flex gap-2">
             <Input placeholder="Provider name" value={newProvider} onChange={(e) => setNewProvider(e.target.value)} />
             <Input placeholder="$1,200" value={newAmount} onChange={(e) => setNewAmount(e.target.value)} />
             <Button onClick={addProvider}>Add</Button>
@@ -200,7 +201,7 @@ export default function SettlementPage() {
                 </thead>
                 <tbody>
                   {providers.map((p) => (
-                    <tr key={p.id} className="border-t">
+                    <tr key={p.id} className="border-t border-card-border">
                       <td className="py-2 align-top">{p.name}</td>
                       <td className="py-2 align-top">${p.amount.toLocaleString()}</td>
                       <td className="py-2 align-top">
@@ -209,7 +210,7 @@ export default function SettlementPage() {
                         </label>
                       </td>
                       <td className="py-2 align-top">
-                        <Input type="date" value={p.datePaid ?? ""} onChange={(e) => setProviders((arr) => arr.map((row) => row.id === p.id ? { ...row, datePaid: e.target.value } : row))} />
+                        <DatePicker value={p.datePaid ?? ""} onChange={(v) => setProviders((arr) => arr.map((row) => row.id === p.id ? { ...row, datePaid: v } : row))} />
                       </td>
                       <td className="py-2 align-top text-right">
                         <Button variant="ghost" onClick={() => setProviders((arr) => arr.filter((row) => row.id !== p.id))}>Remove</Button>

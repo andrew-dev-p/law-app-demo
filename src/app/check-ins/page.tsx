@@ -5,6 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Slider } from "@/components/ui/slider";
 
 type CheckIn = {
   id: string;
@@ -52,7 +54,7 @@ export default function CheckInsPage() {
   }, [entries]);
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="w-full p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Medical Check-ins</h1>
@@ -73,7 +75,7 @@ export default function CheckInsPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="date">Date</Label>
-              <Input id="date" type="date" value={dateISO} onChange={(e) => setDateISO(e.target.value)} />
+              <DatePicker id="date" value={dateISO} onChange={setDateISO} />
             </div>
             <div>
               <Label htmlFor="visits">Visits this week</Label>
@@ -82,7 +84,9 @@ export default function CheckInsPage() {
           </div>
           <div>
             <Label htmlFor="pain">Pain level: {pain}</Label>
-            <input id="pain" type="range" min={0} max={10} step={1} value={pain} onChange={(e) => setPain(Number(e.target.value))} className="mt-2 w-full" />
+            <div className="mt-2">
+              <Slider id="pain" min={0} max={10} step={1} value={[pain]} onValueChange={(v) => setPain(v[0] ?? 0)} />
+            </div>
           </div>
           <div>
             <Label htmlFor="notes">Notes (optional)</Label>
@@ -116,7 +120,7 @@ export default function CheckInsPage() {
                 </thead>
                 <tbody>
                   {entries.map((e) => (
-                    <tr key={e.id} className="border-t">
+                    <tr key={e.id} className="border-t border-card-border">
                       <td className="py-2 align-top">{e.dateISO}</td>
                       <td className="py-2 align-top">{e.pain}</td>
                       <td className="py-2 align-top">{e.visits}</td>
@@ -137,4 +141,3 @@ export default function CheckInsPage() {
     </div>
   );
 }
-

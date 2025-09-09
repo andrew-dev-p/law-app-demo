@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { DatePicker } from "@/components/ui/date-picker";
 
 type PersonalInfo = {
   firstName: string;
@@ -37,12 +38,23 @@ type MedicalInfo = {
 
 type UploadItem = { id: string; name: string; size: number };
 
+type Agreement = {
+  initials: string;
+  date: string; // YYYY-MM-DD
+  agreed: boolean;
+};
+
 type IntakeState = {
   personal: PersonalInfo;
   incident: IncidentInfo;
   medical: MedicalInfo;
   uploads: UploadItem[];
   agreed: boolean;
+  agreements: {
+    hipaa: Agreement;
+    representation: Agreement;
+    fee: Agreement;
+  };
 };
 
 const defaultState: IntakeState = {
@@ -71,6 +83,11 @@ const defaultState: IntakeState = {
   },
   uploads: [],
   agreed: false,
+  agreements: {
+    hipaa: { initials: "", date: "", agreed: false },
+    representation: { initials: "", date: "", agreed: false },
+    fee: { initials: "", date: "", agreed: false },
+  },
 };
 
 const steps = [
@@ -78,6 +95,7 @@ const steps = [
   { key: "incident", title: "Incident Details" },
   { key: "medical", title: "Medical & Referral" },
   { key: "uploads", title: "Documents" },
+  { key: "agreements", title: "Agreements" },
   { key: "review", title: "Review & Submit" },
 ] as const;
 
@@ -93,25 +111,53 @@ export default function IntakePage() {
         if (!Number.isNaN(n)) setStep(n);
       }
       if (raw) {
-        try { return JSON.parse(raw) as IntakeState; } catch {}
+        try {
+          const parsed = JSON.parse(raw) as Partial<IntakeState>;
+          return {
+            ...defaultState,
+            ...parsed,
+            personal: { ...defaultState.personal, ...(parsed.personal || {}) },
+            incident: { ...defaultState.incident, ...(parsed.incident || {}) },
+            medical: { ...defaultState.medical, ...(parsed.medical || {}) },
+            agreements: {
+              ...defaultState.agreements,
+              ...(parsed as any).agreements,
+              hipaa: { ...defaultState.agreements.hipaa, ...((parsed as any).agreements?.hipaa || {}) },
+              representation: { ...defaultState.agreements.representation, ...((parsed as any).agreements?.representation || {}) },
+              fee: { ...defaultState.agreements.fee, ...((parsed as any).agreements?.fee || {}) },
+            },
+            uploads: Array.isArray(parsed.uploads) ? (parsed.uploads as UploadItem[]) : [],
+            agreed: Boolean((parsed as any).agreed),
+          } as IntakeState;
+        } catch {}
       }
     }
     return defaultState;
   });
 
-  // Prefill from Clerk user once
+  // Prefill from Clerk user/metadata (only fill empty fields)
   useEffect(() => {
-    if (user && !state.personal.email) {
-      setState((s) => ({
-        ...s,
-        personal: {
-          ...s.personal,
-          email: user.primaryEmailAddress?.emailAddress ?? s.personal.email,
-          firstName: user.firstName ?? s.personal.firstName,
-          lastName: user.lastName ?? s.personal.lastName,
-        },
-      }));
-    }
+    if (!user) return;
+    const meta = (user.unsafeMetadata as any) || {};
+    setState((s) => {
+      const next = {
+        firstName: s.personal.firstName || (meta.contactFirstName as string) || user.firstName || "",
+        lastName: s.personal.lastName || (meta.contactLastName as string) || user.lastName || "",
+        email:
+          s.personal.email ||
+          (meta.contactEmail as string) ||
+          user.primaryEmailAddress?.emailAddress ||
+          "",
+        phone: s.personal.phone || (meta.contactPhone as string) || "",
+      };
+      const unchanged =
+        next.firstName === s.personal.firstName &&
+        next.lastName === s.personal.lastName &&
+        next.email === s.personal.email &&
+        next.phone === s.personal.phone;
+      if (unchanged) return s;
+      return { ...s, personal: { ...s.personal, ...next } };
+    });
   }, [user]);
 
   // Persist in localStorage (demo-only)
@@ -145,7 +191,7 @@ export default function IntakePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="w-full p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">Client Intake</h1>
         <p className="text-sm text-muted-foreground">Provide details so we can advance your claim.</p>
@@ -201,7 +247,8 @@ export default function IntakePage() {
             {step === 1 && "When and how the incident occurred."}
             {step === 2 && "Injuries, treatment, and referral preferences."}
             {step === 3 && "Upload photos, reports, bills, etc."}
-            {step === 4 && "Confirm and submit your intake."}
+            {step === 4 && "Sign HIPAA release and required agreements."}
+            {step === 5 && "Confirm and submit your intake."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -225,7 +272,7 @@ export default function IntakePage() {
               </div>
               <div>
                 <Label htmlFor="dob">Date of birth</Label>
-                <Input id="dob" type="date" value={state.personal.dob} onChange={(e) => setState((s) => ({ ...s, personal: { ...s.personal, dob: e.target.value } }))} />
+                <DatePicker id="dob" value={state.personal.dob} onChange={(v) => setState((s) => ({ ...s, personal: { ...s.personal, dob: v } }))} />
               </div>
               <div className="sm:col-span-2">
                 <Label htmlFor="address">Address</Label>
@@ -239,7 +286,7 @@ export default function IntakePage() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="date">Incident date</Label>
-                  <Input id="date" type="date" value={state.incident.date} onChange={(e) => setState((s) => ({ ...s, incident: { ...s.incident, date: e.target.value } }))} />
+                  <DatePicker id="date" value={state.incident.date} onChange={(v) => setState((s) => ({ ...s, incident: { ...s.incident, date: v } }))} />
                 </div>
                 <div>
                   <Label htmlFor="location">Location (city / state)</Label>
@@ -391,6 +438,73 @@ export default function IntakePage() {
 
           {step === 4 && (
             <div className="space-y-4">
+              <div className="rounded-md border border-card-border p-3">
+                <div className="font-medium">HIPAA Release Authorization</div>
+                <p className="text-sm text-muted-foreground mt-1">I authorize the release of my medical information to my attorneys for purposes of my claim.</p>
+                <div className="mt-3 grid sm:grid-cols-3 gap-3">
+                  <div>
+                    <Label htmlFor="hipaa-initials">Initials</Label>
+                    <Input id="hipaa-initials" value={state.agreements.hipaa.initials} onChange={(e) => setState((s) => ({ ...s, agreements: { ...s.agreements, hipaa: { ...s.agreements.hipaa, initials: e.target.value } } }))} />
+                  </div>
+                  <div>
+                    <Label htmlFor="hipaa-date">Date</Label>
+                    <DatePicker id="hipaa-date" value={state.agreements.hipaa.date} onChange={(v) => setState((s) => ({ ...s, agreements: { ...s.agreements, hipaa: { ...s.agreements.hipaa, date: v } } }))} />
+                  </div>
+                  <div className="flex items-end">
+                    <label className="inline-flex items-center gap-2 text-sm mb-2">
+                      <input type="checkbox" className="h-4 w-4" checked={state.agreements.hipaa.agreed} onChange={(e) => setState((s) => ({ ...s, agreements: { ...s.agreements, hipaa: { ...s.agreements.hipaa, agreed: e.target.checked } } }))} />
+                      I agree
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-md border border-card-border p-3">
+                <div className="font-medium">Representation Agreement</div>
+                <p className="text-sm text-muted-foreground mt-1">I retain the firm to represent me regarding my personal injury matter.</p>
+                <div className="mt-3 grid sm:grid-cols-3 gap-3">
+                  <div>
+                    <Label htmlFor="rep-initials">Initials</Label>
+                    <Input id="rep-initials" value={state.agreements.representation.initials} onChange={(e) => setState((s) => ({ ...s, agreements: { ...s.agreements, representation: { ...s.agreements.representation, initials: e.target.value } } }))} />
+                  </div>
+                  <div>
+                    <Label htmlFor="rep-date">Date</Label>
+                    <DatePicker id="rep-date" value={state.agreements.representation.date} onChange={(v) => setState((s) => ({ ...s, agreements: { ...s.agreements, representation: { ...s.agreements.representation, date: v } } }))} />
+                  </div>
+                  <div className="flex items-end">
+                    <label className="inline-flex items-center gap-2 text-sm mb-2">
+                      <input type="checkbox" className="h-4 w-4" checked={state.agreements.representation.agreed} onChange={(e) => setState((s) => ({ ...s, agreements: { ...s.agreements, representation: { ...s.agreements.representation, agreed: e.target.checked } } }))} />
+                      I agree
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-md border border-card-border p-3">
+                <div className="font-medium">Contingency Fee Agreement</div>
+                <p className="text-sm text-muted-foreground mt-1">Fees are contingent on recovery and will be calculated per our agreement.</p>
+                <div className="mt-3 grid sm:grid-cols-3 gap-3">
+                  <div>
+                    <Label htmlFor="fee-initials">Initials</Label>
+                    <Input id="fee-initials" value={state.agreements.fee.initials} onChange={(e) => setState((s) => ({ ...s, agreements: { ...s.agreements, fee: { ...s.agreements.fee, initials: e.target.value } } }))} />
+                  </div>
+                  <div>
+                    <Label htmlFor="fee-date">Date</Label>
+                    <DatePicker id="fee-date" value={state.agreements.fee.date} onChange={(v) => setState((s) => ({ ...s, agreements: { ...s.agreements, fee: { ...s.agreements.fee, date: v } } }))} />
+                  </div>
+                  <div className="flex items-end">
+                    <label className="inline-flex items-center gap-2 text-sm mb-2">
+                      <input type="checkbox" className="h-4 w-4" checked={state.agreements.fee.agreed} onChange={(e) => setState((s) => ({ ...s, agreements: { ...s.agreements, fee: { ...s.agreements.fee, agreed: e.target.checked } } }))} />
+                      I agree
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 5 && (
+            <div className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm font-medium mb-1">Contact</div>
@@ -427,7 +541,10 @@ export default function IntakePage() {
                 disabled={
                   (step === 0 && (!state.personal.firstName || !state.personal.lastName || !state.personal.email)) ||
                   (step === 1 && (!state.incident.date || !state.incident.type)) ||
-                  (step === 2 && (!state.medical.seenDoctor))
+                  (step === 2 && (!state.medical.seenDoctor)) ||
+                  (step === 4 && (!state.agreements.hipaa.initials || !state.agreements.hipaa.date || !state.agreements.hipaa.agreed ||
+                                   !state.agreements.representation.initials || !state.agreements.representation.date || !state.agreements.representation.agreed ||
+                                   !state.agreements.fee.initials || !state.agreements.fee.date || !state.agreements.fee.agreed))
                 }
               >
                 Continue

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
 
 type Offer = { id: string; dateISO: string; from: "Insurer" | "Client"; amount: number; note?: string };
@@ -98,7 +99,7 @@ export default function LitigationPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="w-full p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Litigation</h1>
@@ -137,10 +138,10 @@ export default function LitigationPage() {
             ))}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3 max-w-3xl">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <Label htmlFor="sol">Statute of limitations</Label>
-              <Input id="sol" type="date" value={lit.solDate ?? ""} onChange={(e) => setLit((s) => ({ ...s, solDate: e.target.value }))} />
+              <DatePicker id="sol" value={lit.solDate ?? ""} onChange={(v) => setLit((s) => ({ ...s, solDate: v }))} />
               <div className="text-xs text-muted-foreground mt-1">{daysToSOL == null ? "" : `${daysToSOL} day(s) remaining`}</div>
             </div>
             <div>
@@ -187,7 +188,7 @@ export default function LitigationPage() {
           <CardDescription>Who should handle the litigation?</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3 max-w-4xl">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <Label htmlFor="firm">Firm</Label>
               <Input id="firm" value={lit.firmName ?? ""} onChange={(e) => setLit((s) => ({ ...s, firmName: e.target.value }))} />
@@ -226,27 +227,27 @@ export default function LitigationPage() {
           <CardDescription>Snapshot of current case status for counsel.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
-          <div className="rounded-md border p-3">
+          <div className="rounded-md border border-card-border p-3">
             <div className="text-muted-foreground">Intake</div>
-            <div className="font-medium">{intakeStep >= 5 ? "Submitted" : "In progress"}</div>
+            <div className="font-medium">{intakeStep >= 6 ? "Submitted" : "In progress"}</div>
           </div>
-          <div className="rounded-md border p-3">
+          <div className="rounded-md border border-card-border p-3">
             <div className="text-muted-foreground">Providers on file</div>
             <div className="font-medium">{providersCount}</div>
           </div>
-          <div className="rounded-md border p-3">
+          <div className="rounded-md border border-card-border p-3">
             <div className="text-muted-foreground">Client documents</div>
             <div className="font-medium">{uploadsCount}</div>
           </div>
-          <div className="rounded-md border p-3">
+          <div className="rounded-md border border-card-border p-3">
             <div className="text-muted-foreground">Best insurer offer</div>
             <div className="font-medium">{bestInsurer ? `$${bestInsurer.amount.toLocaleString()}` : "—"}</div>
           </div>
-          <div className="rounded-md border p-3">
+          <div className="rounded-md border border-card-border p-3">
             <div className="text-muted-foreground">Target amount</div>
             <div className="font-medium">{lit.targetAmount ? `$${lit.targetAmount.toLocaleString()}` : "—"}</div>
           </div>
-          <div className="rounded-md border p-3">
+          <div className="rounded-md border border-card-border p-3">
             <div className="text-muted-foreground">SOL</div>
             <div className="font-medium">{lit.solDate || "—"} {daysToSOL != null ? `(${daysToSOL}d)` : ""}</div>
           </div>

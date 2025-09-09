@@ -68,7 +68,7 @@ export default function BillsRecordsPage() {
   }, []);
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
+    <div className="w-full p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Bills & Records</h1>
@@ -88,7 +88,7 @@ export default function BillsRecordsPage() {
           <CardDescription>Enter the clinic, hospital, or imaging center.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2 max-w-xl">
+          <div className="flex gap-2">
             <Input placeholder="e.g., City Chiropractic" value={name} onChange={(e) => setName(e.target.value)} />
             <Button onClick={add}>Add</Button>
           </div>
@@ -117,7 +117,7 @@ export default function BillsRecordsPage() {
                 </thead>
                 <tbody>
                   {providers.map((p) => (
-                    <tr key={p.id} className="border-t">
+                    <tr key={p.id} className="border-t border-card-border">
                       <td className="py-2 align-top">{p.name}</td>
                       <td className="py-2 align-top">
                         <label className="inline-flex items-center gap-2"><input type="checkbox" checked={p.recordsRequested} onChange={() => toggle(p.id, "recordsRequested")} /> Requested</label>
@@ -142,4 +142,3 @@ export default function BillsRecordsPage() {
     </div>
   );
 }
-

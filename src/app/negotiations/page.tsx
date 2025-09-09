@@ -56,7 +56,7 @@ export default function NegotiationsPage() {
   const lastClient = useMemo(() => offers.find((o) => o.from === "Client"), [offers]);
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="w-full p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Negotiations</h1>
@@ -74,7 +74,7 @@ export default function NegotiationsPage() {
           <CardDescription>Enter your counter amount and an optional note.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2 max-w-xl">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="amount">Amount</Label>
               <Input id="amount" placeholder="$25,000" value={amount} onChange={(e) => setAmount(e.target.value)} />
@@ -111,7 +111,7 @@ export default function NegotiationsPage() {
                 </thead>
                 <tbody>
                   {offers.map((o) => (
-                    <tr key={o.id} className="border-t">
+                    <tr key={o.id} className="border-t border-card-border">
                       <td className="py-2">{o.dateISO}</td>
                       <td className="py-2">
                         <Badge variant={o.from === "Insurer" ? "outline" : "success"}>{o.from}</Badge>
