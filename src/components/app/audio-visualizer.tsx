@@ -10,7 +10,7 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
   isActive,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
   const waveformRef = useRef({
     time: 0,
     frequencies: Array(5)
@@ -63,7 +63,8 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
 
       // Update target amplitudes with a gentle breathing variation
       waveformRef.current.frequencies.forEach((freq, index) => {
-        const variation = Math.sin(waveformRef.current.time * 0.5 + index) * 0.2;
+        const variation =
+          Math.sin(waveformRef.current.time * 0.5 + index) * 0.2;
         freq.targetAmplitude = baseAmplitude + audioMultiplier + variation * 12;
         freq.amplitude += (freq.targetAmplitude - freq.amplitude) * 0.08;
       });
@@ -78,19 +79,28 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
 
       // Draw smooth, rounded waves with a strong center envelope to look circular
       layers.forEach((L, li) => {
-        const freq = waveformRef.current.frequencies[li % waveformRef.current.frequencies.length];
+        const freq =
+          waveformRef.current.frequencies[
+            li % waveformRef.current.frequencies.length
+          ];
         const points: { x: number; y: number }[] = [];
 
-        const k = 2 * Math.PI * (1.25 + 0.15 * Math.sin(waveformRef.current.time * 0.15 + li));
+        const k =
+          2 *
+          Math.PI *
+          (1.25 + 0.15 * Math.sin(waveformRef.current.time * 0.15 + li));
         const step = 8; // fewer points + smoothing -> rounded curves
 
         for (let x = 0; x <= rect.width; x += step) {
           const t = x / rect.width; // 0..1
           // Circular-looking envelope (peaks in the middle, soft at edges)
           const env = Math.pow(Math.sin(Math.PI * t), 1.5); // 0 at edges, 1 at center
-          const amp = (freq.amplitude * L.scale) * (0.35 + 0.65 * env);
+          const amp = freq.amplitude * L.scale * (0.35 + 0.65 * env);
 
-          const y = centerY + Math.sin(k * t + waveformRef.current.time + L.phase + freq.phase) * amp;
+          const y =
+            centerY +
+            Math.sin(k * t + waveformRef.current.time + L.phase + freq.phase) *
+              amp;
           points.push({ x, y });
         }
 
