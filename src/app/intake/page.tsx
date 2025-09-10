@@ -3,103 +3,18 @@
 import { BackLink } from "@/components/app/back-link";
 import { useEffect, useMemo, useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { DatePicker } from "@/components/ui/date-picker";
 
-type PersonalInfo = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  dob: string;
-  address: string;
-};
-
-type IncidentInfo = {
-  date: string;
-  location: string;
-  type: "Auto" | "Slip and Fall" | "Workplace" | "Other" | "";
-  description: string;
-  policeReport: "yes" | "no" | "";
-  claimNumber: string;
-};
-
-type MedicalInfo = {
-  injuries: string[];
-  seenDoctor: "yes" | "no" | "";
-  needReferral: boolean;
-  preferredProvider: string;
-  city: string;
-};
-
-type UploadItem = { id: string; name: string; size: number };
-
-type Agreement = {
-  initials: string;
-  date: string; // YYYY-MM-DD
-  agreed: boolean;
-};
-
-type IntakeState = {
-  personal: PersonalInfo;
-  incident: IncidentInfo;
-  medical: MedicalInfo;
-  uploads: UploadItem[];
-  agreed: boolean;
-  agreements: {
-    hipaa: Agreement;
-    representation: Agreement;
-    fee: Agreement;
-  };
-};
-
-const defaultState: IntakeState = {
-  personal: {
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    dob: "",
-    address: "",
-  },
-  incident: {
-    date: "",
-    location: "",
-    type: "",
-    description: "",
-    policeReport: "",
-    claimNumber: "",
-  },
-  medical: {
-    injuries: [],
-    seenDoctor: "",
-    needReferral: false,
-    preferredProvider: "",
-    city: "",
-  },
-  uploads: [],
-  agreed: false,
-  agreements: {
-    hipaa: { initials: "", date: "", agreed: false },
-    representation: { initials: "", date: "", agreed: false },
-    fee: { initials: "", date: "", agreed: false },
-  },
-};
-
-const steps = [
-  { key: "personal", title: "Personal Info" },
-  { key: "incident", title: "Incident Details" },
-  { key: "medical", title: "Medical & Referral" },
-  { key: "uploads", title: "Documents" },
-  { key: "agreements", title: "Agreements" },
-  { key: "review", title: "Review & Submit" },
-] as const;
+import { AgreementsForm } from "./_components/AgreementsForm";
+import { IncidentVoice } from "./_components/IncidentVoice";
+import { MedicalForm } from "./_components/MedicalForm";
+import { PersonalForm } from "./_components/PersonalForm";
+import { ReviewSection } from "./_components/ReviewSection";
+import { StepHeader } from "./_components/StepHeader";
+import { UploadsForm } from "./_components/UploadsForm";
+import { defaultState, steps, type IntakeState, type UploadItem } from "./model";
 
 export default function IntakePage() {
   const { user } = useUser();
@@ -201,36 +116,7 @@ export default function IntakePage() {
       </div>
 
       {step < steps.length ? (
-        <>
-          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex-1 overflow-x-auto no-scrollbar">
-              <div className="flex items-center gap-1.5 whitespace-nowrap snap-x px-0.5">
-                {steps.map((s, i) => (
-                  <button
-                    key={s.key}
-                    type="button"
-                    onClick={() => setStep(i)}
-                    className={cn(
-                      "shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors",
-                      i === step
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
-                    )}
-                    aria-current={i === step ? "step" : undefined}
-                  >
-                    <span className={cn(
-                      "inline-flex h-4 w-4 items-center justify-center rounded-full border text-[10px]",
-                      i === step ? "border-primary/60 bg-background/20" : "border-border bg-background"
-                    )}>{i + 1}</span>
-                    <span className="max-w-[140px] truncate">{s.title}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <span className="shrink-0 text-xs sm:text-sm text-muted-foreground">{Math.round(progress)}% complete</span>
-          </div>
-          <Progress value={progress} className="mb-6" />
-        </>
+        <StepHeader steps={steps} current={step} onSelect={setStep} progress={progress} />
       ) : (
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm">
@@ -256,284 +142,39 @@ export default function IntakePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {step === 0 && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <Label htmlFor="firstName">First name</Label>
-                <Input id="firstName" value={state.personal.firstName} onChange={(e) => setState((s) => ({ ...s, personal: { ...s.personal, firstName: e.target.value } }))} />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last name</Label>
-                <Input id="lastName" value={state.personal.lastName} onChange={(e) => setState((s) => ({ ...s, personal: { ...s.personal, lastName: e.target.value } }))} />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={state.personal.email} onChange={(e) => setState((s) => ({ ...s, personal: { ...s.personal, email: e.target.value } }))} />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" placeholder="(555) 555-5555" value={state.personal.phone} onChange={(e) => setState((s) => ({ ...s, personal: { ...s.personal, phone: e.target.value } }))} />
-              </div>
-              <div>
-                <Label htmlFor="dob">Date of birth</Label>
-                <DatePicker id="dob" value={state.personal.dob} onChange={(v) => setState((s) => ({ ...s, personal: { ...s.personal, dob: v } }))} />
-              </div>
-              <div className="sm:col-span-2">
-                <Label htmlFor="address">Address</Label>
-                <Input id="address" value={state.personal.address} onChange={(e) => setState((s) => ({ ...s, personal: { ...s.personal, address: e.target.value } }))} />
-              </div>
-            </div>
+            <PersonalForm
+              value={state.personal}
+              onChange={(next) => setState((s) => ({ ...s, personal: { ...s.personal, ...next } }))}
+            />
           )}
 
           {step === 1 && (
-            <div className="grid gap-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="date">Incident date</Label>
-                  <DatePicker id="date" value={state.incident.date} onChange={(v) => setState((s) => ({ ...s, incident: { ...s.incident, date: v } }))} />
-                </div>
-                <div>
-                  <Label htmlFor="location">Location (city / state)</Label>
-                  <Input id="location" value={state.incident.location} onChange={(e) => setState((s) => ({ ...s, incident: { ...s.incident, location: e.target.value } }))} />
-                </div>
-              </div>
-              <div>
-                <Label>Type</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {["Auto", "Slip and Fall", "Workplace", "Other"].map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      className={cn(
-                        "px-3 py-1.5 rounded-md text-sm border",
-                        state.incident.type === t ? "bg-primary text-primary-foreground" : "bg-background hover:bg-accent text-foreground"
-                      )}
-                      onClick={() => setState((s) => ({ ...s, incident: { ...s.incident, type: t as IncidentInfo["type"] } }))}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="description">Brief description</Label>
-                <textarea
-                  id="description"
-                  rows={4}
-                  className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  placeholder="What happened?"
-                  value={state.incident.description}
-                  onChange={(e) => setState((s) => ({ ...s, incident: { ...s.incident, description: e.target.value } }))}
-                />
-              </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <Label>Police report filed?</Label>
-                  <div className="mt-2 flex gap-2">
-                    {["yes", "no"].map((v) => (
-                      <button key={v} type="button" className={cn("px-3 py-1.5 rounded-md text-sm border", state.incident.policeReport === v ? "bg-primary text-primary-foreground" : "bg-background hover:bg-accent")} onClick={() => setState((s) => ({ ...s, incident: { ...s.incident, policeReport: v as "yes" | "no" } }))}>
-                        {v.toUpperCase()}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="claim">Claim number (if any)</Label>
-                  <Input id="claim" value={state.incident.claimNumber} onChange={(e) => setState((s) => ({ ...s, incident: { ...s.incident, claimNumber: e.target.value } }))} />
-                </div>
-              </div>
-            </div>
+            <IncidentVoice
+              transcript={state.incident.transcript}
+              onSave={(t) => setState((s) => ({ ...s, incident: { ...s.incident, transcript: t } }))}
+            />
           )}
 
           {step === 2 && (
-            <div className="grid gap-4">
-              <div>
-                <Label>Injuries (select all that apply)</Label>
-                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {["Head/Neck", "Back", "Shoulder", "Arm/Hand", "Hip/Leg", "Ankle/Foot", "Other"].map((inj) => {
-                    const active = state.medical.injuries.includes(inj);
-                    return (
-                      <button
-                        key={inj}
-                        type="button"
-                        className={cn("px-3 py-1.5 rounded-md text-sm border text-left", active ? "bg-primary text-primary-foreground" : "bg-background hover:bg-accent")}
-                        onClick={() =>
-                          setState((s) => ({
-                            ...s,
-                            medical: {
-                              ...s.medical,
-                              injuries: active
-                                ? s.medical.injuries.filter((x) => x !== inj)
-                                : [...s.medical.injuries, inj],
-                            },
-                          }))
-                        }
-                      >
-                        {inj}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <Label>Have you seen a doctor?</Label>
-                <div className="mt-2 flex gap-2">
-                  {["yes", "no"].map((v) => (
-                    <button key={v} type="button" className={cn("px-3 py-1.5 rounded-md text-sm border", state.medical.seenDoctor === v ? "bg-primary text-primary-foreground" : "bg-background hover:bg-accent")} onClick={() => setState((s) => ({ ...s, medical: { ...s.medical, seenDoctor: v as "yes" | "no" } }))}>
-                      {v.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-2">
-                  <input id="referral" type="checkbox" className="h-4 w-4" checked={state.medical.needReferral} onChange={(e) => setState((s) => ({ ...s, medical: { ...s.medical, needReferral: e.target.checked } }))} />
-                  <Label htmlFor="referral">I would like a referral for care</Label>
-                </div>
-                <div />
-                {state.medical.needReferral && (
-                  <>
-                    <div>
-                      <Label htmlFor="provider">Preferred provider type</Label>
-                      <Input id="provider" placeholder="e.g., Chiropractor, PCP, PT" value={state.medical.preferredProvider} onChange={(e) => setState((s) => ({ ...s, medical: { ...s.medical, preferredProvider: e.target.value } }))} />
-                    </div>
-                    <div>
-                      <Label htmlFor="city">City for referral</Label>
-                      <Input id="city" placeholder="City" value={state.medical.city} onChange={(e) => setState((s) => ({ ...s, medical: { ...s.medical, city: e.target.value } }))} />
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
+            <MedicalForm
+              value={state.medical}
+              onChange={(next) => setState((s) => ({ ...s, medical: { ...s.medical, ...next } }))}
+            />
           )}
 
           {step === 3 && (
-            <div className="grid gap-4">
-              <div>
-                <Label htmlFor="files">Upload documents</Label>
-                <input
-                  id="files"
-                  type="file"
-                  multiple
-                  accept="image/*,application/pdf"
-                  className="mt-2 block w-full text-sm file:mr-4 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-accent"
-                  onChange={(e) => onFileChange(e.target.files)}
-                />
-                <p className="text-xs text-muted-foreground mt-1">Accepted: PDF, images. Max 10MB each (demo only).</p>
-              </div>
-              <div className="divide-y border rounded-md">
-                {state.uploads.length === 0 && (
-                  <div className="p-4 text-sm text-muted-foreground">No files added yet.</div>
-                )}
-                {state.uploads.map((u) => (
-                  <div key={u.id} className="p-4 flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium">{u.name}</div>
-                      <div className="text-xs text-muted-foreground">{(u.size / 1024).toFixed(1)} KB</div>
-                    </div>
-                    <Button variant="ghost" onClick={() => removeUpload(u.id)}>Remove</Button>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <UploadsForm uploads={state.uploads} onFileChange={onFileChange} onRemove={removeUpload} />
           )}
 
           {step === 4 && (
-            <div className="space-y-4">
-              <div className="rounded-md border border-card-border p-3">
-                <div className="font-medium">HIPAA Release Authorization</div>
-                <p className="text-sm text-muted-foreground mt-1">I authorize the release of my medical information to my attorneys for purposes of my claim.</p>
-                <div className="mt-3 grid sm:grid-cols-3 gap-3">
-                  <div>
-                    <Label htmlFor="hipaa-initials">Initials</Label>
-                    <Input id="hipaa-initials" value={state.agreements.hipaa.initials} onChange={(e) => setState((s) => ({ ...s, agreements: { ...s.agreements, hipaa: { ...s.agreements.hipaa, initials: e.target.value } } }))} />
-                  </div>
-                  <div>
-                    <Label htmlFor="hipaa-date">Date</Label>
-                    <DatePicker id="hipaa-date" value={state.agreements.hipaa.date} onChange={(v) => setState((s) => ({ ...s, agreements: { ...s.agreements, hipaa: { ...s.agreements.hipaa, date: v } } }))} />
-                  </div>
-                  <div className="flex items-end">
-                    <label className="inline-flex items-center gap-2 text-sm mb-2">
-                      <input type="checkbox" className="h-4 w-4" checked={state.agreements.hipaa.agreed} onChange={(e) => setState((s) => ({ ...s, agreements: { ...s.agreements, hipaa: { ...s.agreements.hipaa, agreed: e.target.checked } } }))} />
-                      I agree
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-md border border-card-border p-3">
-                <div className="font-medium">Representation Agreement</div>
-                <p className="text-sm text-muted-foreground mt-1">I retain the firm to represent me regarding my personal injury matter.</p>
-                <div className="mt-3 grid sm:grid-cols-3 gap-3">
-                  <div>
-                    <Label htmlFor="rep-initials">Initials</Label>
-                    <Input id="rep-initials" value={state.agreements.representation.initials} onChange={(e) => setState((s) => ({ ...s, agreements: { ...s.agreements, representation: { ...s.agreements.representation, initials: e.target.value } } }))} />
-                  </div>
-                  <div>
-                    <Label htmlFor="rep-date">Date</Label>
-                    <DatePicker id="rep-date" value={state.agreements.representation.date} onChange={(v) => setState((s) => ({ ...s, agreements: { ...s.agreements, representation: { ...s.agreements.representation, date: v } } }))} />
-                  </div>
-                  <div className="flex items-end">
-                    <label className="inline-flex items-center gap-2 text-sm mb-2">
-                      <input type="checkbox" className="h-4 w-4" checked={state.agreements.representation.agreed} onChange={(e) => setState((s) => ({ ...s, agreements: { ...s.agreements, representation: { ...s.agreements.representation, agreed: e.target.checked } } }))} />
-                      I agree
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-md border border-card-border p-3">
-                <div className="font-medium">Contingency Fee Agreement</div>
-                <p className="text-sm text-muted-foreground mt-1">Fees are contingent on recovery and will be calculated per our agreement.</p>
-                <div className="mt-3 grid sm:grid-cols-3 gap-3">
-                  <div>
-                    <Label htmlFor="fee-initials">Initials</Label>
-                    <Input id="fee-initials" value={state.agreements.fee.initials} onChange={(e) => setState((s) => ({ ...s, agreements: { ...s.agreements, fee: { ...s.agreements.fee, initials: e.target.value } } }))} />
-                  </div>
-                  <div>
-                    <Label htmlFor="fee-date">Date</Label>
-                    <DatePicker id="fee-date" value={state.agreements.fee.date} onChange={(v) => setState((s) => ({ ...s, agreements: { ...s.agreements, fee: { ...s.agreements.fee, date: v } } }))} />
-                  </div>
-                  <div className="flex items-end">
-                    <label className="inline-flex items-center gap-2 text-sm mb-2">
-                      <input type="checkbox" className="h-4 w-4" checked={state.agreements.fee.agreed} onChange={(e) => setState((s) => ({ ...s, agreements: { ...s.agreements, fee: { ...s.agreements.fee, agreed: e.target.checked } } }))} />
-                      I agree
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <AgreementsForm
+              value={state.agreements}
+              onChange={(agreements) => setState((s) => ({ ...s, agreements }))}
+            />
           )}
 
           {step === 5 && (
-            <div className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <div className="text-sm font-medium mb-1">Contact</div>
-                  <div className="text-sm text-muted-foreground">{state.personal.firstName} {state.personal.lastName}</div>
-                  <div className="text-sm text-muted-foreground">{state.personal.email}</div>
-                  <div className="text-sm text-muted-foreground">{state.personal.phone}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium mb-1">Incident</div>
-                  <div className="text-sm text-muted-foreground">{state.incident.type || "вЂ”"} on {state.incident.date || "вЂ”"}</div>
-                  <div className="text-sm text-muted-foreground">{state.incident.location || "вЂ”"}</div>
-                </div>
-              </div>
-              <div>
-                <div className="text-sm font-medium mb-1">Injuries</div>
-                <div className="text-sm text-muted-foreground">{state.medical.injuries.length ? state.medical.injuries.join(", ") : "вЂ”"}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium mb-1">Documents</div>
-                <div className="text-sm text-muted-foreground">{state.uploads.length} file(s) attached</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <input id="agree" type="checkbox" className="h-4 w-4" checked={state.agreed} onChange={(e) => setState((s) => ({ ...s, agreed: e.target.checked }))} />
-                <Label htmlFor="agree">I confirm the above information is accurate to the best of my knowledge.</Label>
-              </div>
-            </div>
+            <ReviewSection state={state} onAgreedChange={(agreed) => setState((s) => ({ ...s, agreed }))} />
           )}
 
           <div className="flex items-center justify-between pt-2">
@@ -543,7 +184,7 @@ export default function IntakePage() {
                 onClick={next}
                 disabled={
                   (step === 0 && (!state.personal.firstName || !state.personal.lastName || !state.personal.email)) ||
-                  (step === 1 && (!state.incident.date || !state.incident.type)) ||
+                  (step === 1 && (!state.incident.transcript || !state.incident.transcript.trim())) ||
                   (step === 2 && (!state.medical.seenDoctor)) ||
                   (step === 4 && (!state.agreements.hipaa.initials || !state.agreements.hipaa.date || !state.agreements.hipaa.agreed ||
                                    !state.agreements.representation.initials || !state.agreements.representation.date || !state.agreements.representation.agreed ||
@@ -565,7 +206,7 @@ export default function IntakePage() {
           <Card>
             <CardHeader>
               <CardTitle>Intake Submitted</CardTitle>
-              <CardDescription>Thank you! WeвЂ™ll review and follow up shortly.</CardDescription>
+              <CardDescription>Thank you! We’ll review and follow up shortly.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex gap-2">
@@ -581,5 +222,3 @@ export default function IntakePage() {
     </div>
   );
 }
-
-

@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 interface VoiceRecorderProps {
   onClose: () => void;
   onSave?: (transcript: string) => void;
+  saveLabel?: string;
 }
 
-const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onClose, onSave }) => {
+const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onClose, onSave, saveLabel }) => {
   const [transcript, setTranscript] = useState("");
   const [isListening, setIsListening] = useState(false);
 
@@ -83,7 +84,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onClose, onSave }) => {
         {/* Save */}
         <div className="mt-10">
           <Button onClick={handleSave} disabled={!transcript.trim()}>
-            Save Check-in
+            {saveLabel ?? "Save Check-in"}
           </Button>
         </div>
       </div>
