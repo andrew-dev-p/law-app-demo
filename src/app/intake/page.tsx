@@ -15,6 +15,7 @@ import { ReviewSection } from "./_components/ReviewSection";
 import { StepHeader } from "./_components/StepHeader";
 import { UploadsForm } from "./_components/UploadsForm";
 import { defaultState, steps, type IntakeState, type UploadItem } from "./model";
+import { cancelIncidentReminders, ensureIncidentRemindersScheduled } from "@/lib/reminders";
 
 export default function IntakePage() {
   const { user } = useUser();
@@ -106,6 +107,20 @@ export default function IntakePage() {
     // Frontend-only demo: pretend to submit
     setStep(steps.length); // go to submitted view
   };
+
+  // Schedule reminders if incident voice not completed
+  useEffect(() => {
+    if (step === 1 && !state.incident.transcript?.trim()) {
+      ensureIncidentRemindersScheduled();
+    }
+  }, [step, state.incident.transcript]);
+
+  // If transcript saved, cancel reminders
+  useEffect(() => {
+    if (state.incident.transcript?.trim()) {
+      cancelIncidentReminders("completed");
+    }
+  }, [state.incident.transcript]);
 
   return (
     <div className="w-full p-6">

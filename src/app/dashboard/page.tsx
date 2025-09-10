@@ -8,8 +8,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CheckIcon } from "lucide-react";
+import {
+  IncidentReminders,
+  getIncidentReminders,
+  materializeIncidentReminders,
+} from "@/lib/reminders";
+import { useRef } from "react";
+import { toast } from "sonner";
 
 type IntakeState = {
   personal: { firstName: string; lastName: string; email: string };
@@ -35,6 +43,8 @@ export default function DashboardPage() {
   const [offers, setOffers] = useState<any[]>([]);
   const [settlement, setSettlement] = useState<any>(null);
   const [litigation, setLitigation] = useState<any>(null);
+  const [incidentReminders, setIncidentReminders] =
+    useState<IncidentReminders | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -55,9 +65,43 @@ export default function DashboardPage() {
         if (s) setSettlement(JSON.parse(s));
         const l = window.localStorage.getItem("litigation-state");
         if (l) setLitigation(JSON.parse(l));
+        setIncidentReminders(
+          materializeIncidentReminders(getIncidentReminders())
+        );
       } catch {}
     }
   }, []);
+
+  // Tick reminder statuses occasionally
+  useEffect(() => {
+    const id = setInterval(() => {
+      const next = materializeIncidentReminders();
+      if (next) setIncidentReminders(next);
+    }, 2000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Toast on status change
+  const prevRemRef = useRef<IncidentReminders | null>(null);
+  useEffect(() => {
+    if (!incidentReminders) return;
+    const prev = prevRemRef.current;
+    if (
+      prev &&
+      prev.sms.status !== incidentReminders.sms.status &&
+      incidentReminders.sms.status === "sent"
+    ) {
+      toast.success("SMS reminder sent");
+    }
+    if (
+      prev &&
+      prev.call.status !== incidentReminders.call.status &&
+      incidentReminders.call.status === "completed"
+    ) {
+      toast.success("Phone call reminder completed");
+    }
+    prevRemRef.current = incidentReminders;
+  }, [incidentReminders]);
 
   // Checklist steps
   const steps = useMemo(() => {
@@ -217,6 +261,16 @@ export default function DashboardPage() {
                             {s.done ? "Completed" : "Pending"}
                           </div>
                         )}
+                        {s.id === "intake" && incidentReminders?.enabled && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            <Badge variant="outline">
+                              Incident voice reminder (SMS): {incidentReminders.sms.status}
+                            </Badge>
+                            <Badge variant="outline">
+                              Incident voice reminder (Call): {incidentReminders.call.status}
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                     </div>
                     {!s.done && !isCurrent && (
@@ -251,6 +305,8 @@ export default function DashboardPage() {
           </ul>
         </CardContent>
       </Card>
+
+      {/* Removed separate Incident Follow-up card; statuses are shown inline on the intake step. */}
     </div>
   );
 }

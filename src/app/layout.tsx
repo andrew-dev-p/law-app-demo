@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono, Mulish } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "sonner";
 import { AppHeader } from "@/components/app/header";
 import { SetupAccountGate } from "@/components/app/setup-account-gate";
 
@@ -34,6 +35,7 @@ export default function RootLayout({
           <AppHeader />
           <SetupAccountGate />
           <main className="min-h-[calc(100vh-57px)]">{children}</main>
+          <Toaster position="top-right" richColors closeButton />
         </ClerkProvider>
       </body>
     </html>
