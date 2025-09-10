@@ -37,7 +37,7 @@ export const useVoiceRecording = ({
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const speechRecognitionRef = useRef<SpeechRecognition | null>(null);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | null>(null);
 
   // Initialize speech recognition
   useEffect(() => {
