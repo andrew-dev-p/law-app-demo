@@ -1,12 +1,14 @@
 ﻿"use client";
 
 import { BackLink } from "@/components/app/back-link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+
+type RequestStatus = "idle" | "pending" | "done" | "failed";
 
 type Provider = {
   id: string;
@@ -15,13 +17,36 @@ type Provider = {
   recordsReceived: boolean;
   billsReceived: boolean;
   notes?: string;
+  request?: {
+    status: RequestStatus;
+    startedAt?: string; // ISO
+    completedAt?: string; // ISO
+    phone?: string;
+    fax?: string;
+    email?: string;
+  };
 };
 
+type DirectoryEntry = { name: string; phone?: string; fax?: string; email?: string };
+
 const KEY = "bills-records-providers";
+const DIRECTORY: DirectoryEntry[] = [
+  { name: "City Chiropractic", phone: "(555) 201-1122", fax: "(555) 201-1188", email: "records@citychiro.example" },
+  { name: "Metro Imaging Center", phone: "(555) 441-9000", fax: "(555) 441-9001", email: "roi@metroimg.example" },
+  { name: "General Hospital", phone: "(555) 800-3000", fax: "(555) 800-3005", email: "medical.records@generalhosp.example" },
+];
 
 export default function BillsRecordsPage() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [name, setName] = useState("");
+  // Request Records form state
+  const [reqName, setReqName] = useState("");
+  const [reqPhone, setReqPhone] = useState("");
+  const [reqFax, setReqFax] = useState("");
+  const [reqEmail, setReqEmail] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [searchMsg, setSearchMsg] = useState<string | null>(null);
+  const pollRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -36,6 +61,35 @@ export default function BillsRecordsPage() {
     window.localStorage.setItem(KEY, JSON.stringify(providers));
   }, [providers]);
 
+  // Simulate async API delivering records a short time after request
+  useEffect(() => {
+    if (pollRef.current != null) window.clearInterval(pollRef.current);
+    pollRef.current = window.setInterval(() => {
+      setProviders((arr) => {
+        const now = Date.now();
+        let changed = false;
+        const next = arr.map((p) => {
+          if (p.request?.status === "pending" && p.request.startedAt) {
+            const started = new Date(p.request.startedAt).getTime();
+            if (now - started > 10000) {
+              changed = true;
+              return {
+                ...p,
+                recordsReceived: true,
+                request: { ...p.request, status: "done", completedAt: new Date().toISOString() },
+              };
+            }
+          }
+          return p;
+        });
+        return changed ? next : arr;
+      });
+    }, 2000);
+    return () => {
+      if (pollRef.current != null) window.clearInterval(pollRef.current);
+    };
+  }, []);
+
   const add = () => {
     if (!name.trim()) return;
     setProviders((arr) => [
@@ -45,8 +99,56 @@ export default function BillsRecordsPage() {
     setName("");
   };
   const remove = (id: string) => setProviders((arr) => arr.filter((p) => p.id !== id));
-  const toggle = (id: string, key: keyof Omit<Provider, "id" | "name" | "notes">) =>
-    setProviders((arr) => arr.map((p) => (p.id === id ? { ...p, [key]: !p[key] } : p)));
+  const toggle = (id: string, key: keyof Omit<Provider, "id" | "name" | "notes" | "request">) =>
+    setProviders((arr) => arr.map((p) => (p.id === id ? { ...p, [key]: !(p as any)[key] } : p)));
+
+  const searchDirectory = async () => {
+    const term = reqName.trim();
+    if (!term) return;
+    setSearching(true);
+    setSearchMsg("Searching directory…");
+    await new Promise((r) => setTimeout(r, 900));
+    const hit = DIRECTORY.find((d) => d.name.toLowerCase().includes(term.toLowerCase()));
+    if (hit) {
+      setReqName(hit.name);
+      setReqPhone(hit.phone || "");
+      setReqFax(hit.fax || "");
+      setReqEmail(hit.email || "");
+      setSearchMsg("Found provider. Details prefilled.");
+    } else {
+      setSearchMsg("No exact match. Please complete details.");
+    }
+    setSearching(false);
+  };
+
+  const requestRecords = () => {
+    if (!reqName.trim()) return;
+    const exists = providers.find((p) => p.name.toLowerCase() === reqName.trim().toLowerCase());
+    const id = exists?.id || crypto.randomUUID();
+    const base: Provider = exists || {
+      id,
+      name: reqName.trim(),
+      recordsRequested: false,
+      recordsReceived: false,
+      billsReceived: false,
+    };
+    const updated: Provider = {
+      ...base,
+      recordsRequested: true,
+      request: {
+        status: "pending",
+        startedAt: new Date().toISOString(),
+        phone: reqPhone || base.request?.phone,
+        fax: reqFax || base.request?.fax,
+        email: reqEmail || base.request?.email,
+      },
+    };
+    setProviders((arr) => {
+      const others = arr.filter((p) => p.id !== id);
+      return [updated, ...others];
+    });
+    setSearchMsg("Request sent. Status: Pending");
+  };
 
   const stats = useMemo(() => {
     const total = providers.length;
@@ -87,6 +189,48 @@ export default function BillsRecordsPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Request Records</CardTitle>
+          <CardDescription>Search a practice and send a records request. If not found, fill details.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="sm:col-span-2">
+              <Label htmlFor="req-name">Practice name</Label>
+              <div className="mt-1 flex gap-2">
+                <Input id="req-name" placeholder="e.g., City Chiropractic" value={reqName} onChange={(e) => setReqName(e.target.value)} />
+                <Button type="button" variant="outline" onClick={searchDirectory} disabled={searching}>
+                  {searching ? (
+                    <span className="inline-flex items-center gap-2"><span className="inline-block h-3 w-3 rounded-full border-2 border-muted border-t-primary animate-spin" /> Searching</span>
+                  ) : (
+                    "Search"
+                  )}
+                </Button>
+              </div>
+              {searchMsg && <div className="mt-1 text-xs text-muted-foreground">{searchMsg}</div>}
+            </div>
+            <div>
+              <Label htmlFor="req-phone">Phone</Label>
+              <Input id="req-phone" placeholder="(555) 555-1212" value={reqPhone} onChange={(e) => setReqPhone(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="req-fax">Fax</Label>
+              <Input id="req-fax" placeholder="(555) 555-3434" value={reqFax} onChange={(e) => setReqFax(e.target.value)} />
+            </div>
+            <div className="sm:col-span-2 lg:col-span-1">
+              <Label htmlFor="req-email">Records email</Label>
+              <Input id="req-email" type="email" placeholder="records@practice.com" value={reqEmail} onChange={(e) => setReqEmail(e.target.value)} />
+            </div>
+            <div className="flex items-end">
+              <Button type="button" onClick={requestRecords} disabled={!reqName.trim()}>
+                Request Records
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Add Provider</CardTitle>
           <CardDescription>Enter the clinic, hospital, or imaging center.</CardDescription>
         </CardHeader>
@@ -96,9 +240,7 @@ export default function BillsRecordsPage() {
             <Button onClick={add}>Add</Button>
           </div>
         </CardContent>
-      </Card>
-
-      <Card>
+      </Card>      <Card>
         <CardHeader>
           <CardTitle>Providers</CardTitle>
           <CardDescription>Toggle stages as work progresses.</CardDescription>
@@ -112,6 +254,7 @@ export default function BillsRecordsPage() {
                 <thead>
                   <tr className="text-left text-muted-foreground">
                     <th className="py-2">Provider</th>
+                    <th className="py-2">Request Status</th>
                     <th className="py-2">Requested</th>
                     <th className="py-2">Records Received</th>
                     <th className="py-2">Bills Received</th>
@@ -122,6 +265,21 @@ export default function BillsRecordsPage() {
                   {providers.map((p) => (
                     <tr key={p.id} className="border-t border-card-border">
                       <td className="py-2 align-top">{p.name}</td>
+                      <td className="py-2 align-top">
+                        {p.request?.status === "pending" && (
+                          <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className="inline-block h-3 w-3 rounded-full border-2 border-muted border-t-primary animate-spin" /> Pending
+                          </span>
+                        )}
+                        {p.request?.status === "done" && (
+                          <Badge variant="success">Done</Badge>
+                        )}
+                        {!p.request?.status && (
+                          <Button size="sm" variant="outline" onClick={() => { setReqName(p.name); setReqPhone(p.request?.phone || ""); setReqFax(p.request?.fax || ""); setReqEmail(p.request?.email || ""); }}>
+                            Prepare Request
+                          </Button>
+                        )}
+                      </td>
                       <td className="py-2 align-top">
                         <label className="inline-flex items-center gap-2"><input type="checkbox" checked={p.recordsRequested} onChange={() => toggle(p.id, "recordsRequested")} /> Requested</label>
                       </td>
@@ -145,5 +303,4 @@ export default function BillsRecordsPage() {
     </div>
   );
 }
-
 
