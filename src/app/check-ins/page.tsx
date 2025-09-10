@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+
+import { BackLink } from "@/components/app/back-link";
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -55,6 +57,7 @@ export default function CheckInsPage() {
 
   return (
     <div className="w-full p-6 space-y-6">
+      <BackLink className="mb-3" />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Medical Check-ins</h1>
@@ -125,7 +128,7 @@ export default function CheckInsPage() {
                       <td className="py-2 align-top">{e.pain}</td>
                       <td className="py-2 align-top">{e.visits}</td>
                       <td className="py-2 align-top max-w-[480px]">
-                        <div className="line-clamp-3 whitespace-pre-wrap">{e.notes || "—"}</div>
+                        <div className="line-clamp-3 whitespace-pre-wrap">{e.notes || "вЂ”"}</div>
                       </td>
                       <td className="py-2 align-top text-right">
                         <Button variant="ghost" onClick={() => remove(e.id)}>Remove</Button>
@@ -141,3 +144,5 @@ export default function CheckInsPage() {
     </div>
   );
 }
+
+

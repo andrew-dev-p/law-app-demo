@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+
+import { BackLink } from "@/components/app/back-link";
 import { useEffect, useMemo, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Label } from "@/components/ui/label";
@@ -192,6 +194,7 @@ export default function IntakePage() {
 
   return (
     <div className="w-full p-6">
+      <BackLink className="mb-3" />
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">Client Intake</h1>
         <p className="text-sm text-muted-foreground">Provide details so we can advance your claim.</p>
@@ -514,13 +517,13 @@ export default function IntakePage() {
                 </div>
                 <div>
                   <div className="text-sm font-medium mb-1">Incident</div>
-                  <div className="text-sm text-muted-foreground">{state.incident.type || "—"} on {state.incident.date || "—"}</div>
-                  <div className="text-sm text-muted-foreground">{state.incident.location || "—"}</div>
+                  <div className="text-sm text-muted-foreground">{state.incident.type || "вЂ”"} on {state.incident.date || "вЂ”"}</div>
+                  <div className="text-sm text-muted-foreground">{state.incident.location || "вЂ”"}</div>
                 </div>
               </div>
               <div>
                 <div className="text-sm font-medium mb-1">Injuries</div>
-                <div className="text-sm text-muted-foreground">{state.medical.injuries.length ? state.medical.injuries.join(", ") : "—"}</div>
+                <div className="text-sm text-muted-foreground">{state.medical.injuries.length ? state.medical.injuries.join(", ") : "вЂ”"}</div>
               </div>
               <div>
                 <div className="text-sm font-medium mb-1">Documents</div>
@@ -562,7 +565,7 @@ export default function IntakePage() {
           <Card>
             <CardHeader>
               <CardTitle>Intake Submitted</CardTitle>
-              <CardDescription>Thank you! We’ll review and follow up shortly.</CardDescription>
+              <CardDescription>Thank you! WeвЂ™ll review and follow up shortly.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex gap-2">
@@ -578,3 +581,5 @@ export default function IntakePage() {
     </div>
   );
 }
+
+

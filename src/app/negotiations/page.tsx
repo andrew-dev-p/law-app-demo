@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+
+import { BackLink } from "@/components/app/back-link";
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,13 +59,14 @@ export default function NegotiationsPage() {
 
   return (
     <div className="w-full p-6 space-y-6">
+      <BackLink className="mb-3" />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Negotiations</h1>
           <p className="text-sm text-muted-foreground">Track insurer offers and propose counters.</p>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <Badge variant={bestInsurer ? "success" : "outline"}>Best offer: {bestInsurer ? `$${bestInsurer.amount.toLocaleString()}` : "—"}</Badge>
+          <Badge variant={bestInsurer ? "success" : "outline"}>Best offer: {bestInsurer ? `$${bestInsurer.amount.toLocaleString()}` : "вЂ”"}</Badge>
           <Badge variant={lastClient ? "outline" : "destructive"}>{lastClient ? `Last counter: $${lastClient.amount.toLocaleString()}` : "No counter yet"}</Badge>
         </div>
       </div>
@@ -117,7 +120,7 @@ export default function NegotiationsPage() {
                         <Badge variant={o.from === "Insurer" ? "outline" : "success"}>{o.from}</Badge>
                       </td>
                       <td className="py-2">${o.amount.toLocaleString()}</td>
-                      <td className="py-2">{o.note || "—"}</td>
+                      <td className="py-2">{o.note || "вЂ”"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -158,3 +161,5 @@ export default function NegotiationsPage() {
     </div>
   );
 }
+
+

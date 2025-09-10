@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+
+import { BackLink } from "@/components/app/back-link";
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -100,6 +102,7 @@ export default function LitigationPage() {
 
   return (
     <div className="w-full p-6 space-y-6">
+      <BackLink className="mb-3" />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Litigation</h1>
@@ -109,7 +112,7 @@ export default function LitigationPage() {
           <Badge variant={lit.referred ? "success" : "outline"}>{lit.referred ? `Referred (${lit.referredAt})` : "Not referred"}</Badge>
           <Badge variant={recommend ? "warning" : "outline"}>{recommend ? "Escalation recommended" : "Negotiation ongoing"}</Badge>
           <Badge variant={daysToSOL != null && daysToSOL <= 30 ? "destructive" : "outline"}>
-            SOL {daysToSOL == null ? "—" : `${daysToSOL}d`}
+            SOL {daysToSOL == null ? "вЂ”" : `${daysToSOL}d`}
           </Badge>
         </div>
       </div>
@@ -152,7 +155,7 @@ export default function LitigationPage() {
                 value={lit.targetAmount?.toString() ?? ""}
                 onChange={(e) => setLit((s) => ({ ...s, targetAmount: Number(e.target.value.replace(/[^0-9.]/g, "")) || undefined }))}
               />
-              <div className="text-xs text-muted-foreground mt-1">Best insurer offer: {bestInsurer ? `$${bestInsurer.amount.toLocaleString()}` : "—"}</div>
+              <div className="text-xs text-muted-foreground mt-1">Best insurer offer: {bestInsurer ? `$${bestInsurer.amount.toLocaleString()}` : "вЂ”"}</div>
             </div>
           </div>
         </CardContent>
@@ -241,18 +244,20 @@ export default function LitigationPage() {
           </div>
           <div className="rounded-md border border-card-border p-3">
             <div className="text-muted-foreground">Best insurer offer</div>
-            <div className="font-medium">{bestInsurer ? `$${bestInsurer.amount.toLocaleString()}` : "—"}</div>
+            <div className="font-medium">{bestInsurer ? `$${bestInsurer.amount.toLocaleString()}` : "вЂ”"}</div>
           </div>
           <div className="rounded-md border border-card-border p-3">
             <div className="text-muted-foreground">Target amount</div>
-            <div className="font-medium">{lit.targetAmount ? `$${lit.targetAmount.toLocaleString()}` : "—"}</div>
+            <div className="font-medium">{lit.targetAmount ? `$${lit.targetAmount.toLocaleString()}` : "вЂ”"}</div>
           </div>
           <div className="rounded-md border border-card-border p-3">
             <div className="text-muted-foreground">SOL</div>
-            <div className="font-medium">{lit.solDate || "—"} {daysToSOL != null ? `(${daysToSOL}d)` : ""}</div>
+            <div className="font-medium">{lit.solDate || "вЂ”"} {daysToSOL != null ? `(${daysToSOL}d)` : ""}</div>
           </div>
         </CardContent>
       </Card>
     </div>
   );
 }
+
+

@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+
+import { BackLink } from "@/components/app/back-link";
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,6 +52,7 @@ export default function DemandReviewPage() {
 
   return (
     <div className="w-full p-6 space-y-6">
+      <BackLink className="mb-3" />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Demand Review</h1>
@@ -101,7 +104,7 @@ export default function DemandReviewPage() {
             <div className="rounded-md border border-card-border p-3">
               <div className="font-medium">Insured demand letter</div>
               <div className="text-muted-foreground mt-1">
-                Claimant: {intake?.personal?.firstName} {intake?.personal?.lastName || "—"}. Incident type: {intake?.incident?.type || "—"} on {intake?.incident?.date || "—"}.
+                Claimant: {intake?.personal?.firstName} {intake?.personal?.lastName || "вЂ”"}. Incident type: {intake?.incident?.type || "вЂ”"} on {intake?.incident?.date || "вЂ”"}.
                 Treatment ongoing. Providers: {providers.length || 0}. Attached docs: {(intake?.uploads?.length || 0)}.
               </div>
             </div>
@@ -111,3 +114,5 @@ export default function DemandReviewPage() {
     </div>
   );
 }
+
+

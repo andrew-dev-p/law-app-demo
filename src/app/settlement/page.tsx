@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+
+import { BackLink } from "@/components/app/back-link";
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -87,6 +89,7 @@ export default function SettlementPage() {
 
   return (
     <div className="w-full p-6 space-y-6">
+      <BackLink className="mb-3" />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Settlement</h1>
@@ -226,3 +229,5 @@ export default function SettlementPage() {
     </div>
   );
 }
+
+
