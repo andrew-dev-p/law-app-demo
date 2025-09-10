@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { CheckIcon } from "lucide-react";
 
 type IntakeState = {
   personal: { firstName: string; lastName: string; email: string };
@@ -204,7 +205,7 @@ export default function DashboardPage() {
                             : "border-border"
                         }`}
                       >
-                        {s.done ? "вњ“" : i + 1}
+                        {s.done ? <CheckIcon className="h-4 w-4" /> : i + 1}
                       </span>
                       <div>
                         <div className="text-sm font-medium">
