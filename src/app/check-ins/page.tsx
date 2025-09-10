@@ -2,30 +2,30 @@
 
 import { BackLink } from "@/components/app/back-link";
 import { useEffect, useMemo, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import VoiceRecorder from "@/components/app/voice-recorder";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Slider } from "@/components/ui/slider";
+import { Mic } from "lucide-react";
 
 type CheckIn = {
   id: string;
   dateISO: string; // YYYY-MM-DD
-  pain: number; // 0-10
-  visits: number; // visits this week
-  notes: string;
+  notes: string; // transcript text
+  transcript?: string;
 };
 
 const KEY = "checkins-data";
 
 export default function CheckInsPage() {
   const [entries, setEntries] = useState<CheckIn[]>([]);
-  const [dateISO, setDateISO] = useState<string>(() => new Date().toISOString().slice(0, 10));
-  const [pain, setPain] = useState<number>(3);
-  const [visits, setVisits] = useState<number>(0);
-  const [notes, setNotes] = useState<string>("");
+  const [showVoice, setShowVoice] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -40,20 +40,21 @@ export default function CheckInsPage() {
     window.localStorage.setItem(KEY, JSON.stringify(entries));
   }, [entries]);
 
-  const add = () => {
-    const e: CheckIn = { id: crypto.randomUUID(), dateISO, pain, visits, notes };
+  const addVoice = (transcript: string) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const e: CheckIn = {
+      id: crypto.randomUUID(),
+      dateISO: today,
+      notes: transcript,
+      transcript,
+    };
     setEntries((arr) => [e, ...arr]);
-    setNotes("");
   };
-  const remove = (id: string) => setEntries((arr) => arr.filter((e) => e.id !== id));
+
+  const remove = (id: string) =>
+    setEntries((arr) => arr.filter((e) => e.id !== id));
 
   const lastDate = useMemo(() => entries[0]?.dateISO || null, [entries]);
-  const avgPain = useMemo(() => {
-    if (entries.length === 0) return null;
-    const n = Math.min(entries.length, 5);
-    const s = entries.slice(0, n).reduce((a, b) => a + b.pain, 0);
-    return Math.round((s / n) * 10) / 10;
-  }, [entries]);
 
   return (
     <div className="w-full p-6 space-y-6">
@@ -61,44 +62,40 @@ export default function CheckInsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Medical Check-ins</h1>
-          <p className="text-sm text-muted-foreground">Track pain, visits, and notes to help your case.</p>
+          <p className="text-sm text-muted-foreground">
+            Use voice to log updates for your case.
+          </p>
         </div>
         <div className="flex items-center gap-2 text-sm">
           {lastDate && <Badge variant="outline">Last: {lastDate}</Badge>}
-          {avgPain != null && <Badge variant={avgPain >= 6 ? "warning" : "success"}>Avg pain: {avgPain}</Badge>}
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Quick Check-in</CardTitle>
-          <CardDescription>It takes less than a minute.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <Label htmlFor="date">Date</Label>
-              <DatePicker id="date" value={dateISO} onChange={setDateISO} />
-            </div>
-            <div>
-              <Label htmlFor="visits">Visits this week</Label>
-              <Input id="visits" type="number" min={0} value={visits} onChange={(e) => setVisits(Number(e.target.value || 0))} />
-            </div>
+        {!showVoice ? (
+          <div className="flex items-center justify-between pr-6">
+            <CardHeader>
+              <CardTitle>Voice Check-in</CardTitle>
+              <CardDescription>
+                Tap the mic and speak your update.
+              </CardDescription>
+            </CardHeader>
+            <Button onClick={() => setShowVoice(true)}>
+              <Mic size={16} />
+              Open Voice Recorder
+            </Button>
           </div>
-          <div>
-            <Label htmlFor="pain">Pain level: {pain}</Label>
-            <div className="mt-2">
-              <Slider id="pain" min={0} max={10} step={1} value={[pain]} onValueChange={(v) => setPain(v[0] ?? 0)} />
-            </div>
+        ) : (
+          <div className="fixed inset-0 z-50 bg-white">
+            <VoiceRecorder
+              onClose={() => setShowVoice(false)}
+              onSave={(t) => {
+                addVoice(t);
+                setShowVoice(false);
+              }}
+            />
           </div>
-          <div>
-            <Label htmlFor="notes">Notes (optional)</Label>
-            <textarea id="notes" rows={3} className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" placeholder="Any new issues, imaging, medications, or provider updates?" value={notes} onChange={(e) => setNotes(e.target.value)} />
-          </div>
-          <div className="flex justify-end">
-            <Button onClick={add}>Add Check-in</Button>
-          </div>
-        </CardContent>
+        )}
       </Card>
 
       <Card>
@@ -108,15 +105,15 @@ export default function CheckInsPage() {
         </CardHeader>
         <CardContent>
           {entries.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No check-ins yet.</div>
+            <div className="text-sm text-muted-foreground">
+              No check-ins yet.
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-muted-foreground">
                     <th className="py-2">Date</th>
-                    <th className="py-2">Pain</th>
-                    <th className="py-2">Visits</th>
                     <th className="py-2">Notes</th>
                     <th className="py-2" />
                   </tr>
@@ -125,13 +122,15 @@ export default function CheckInsPage() {
                   {entries.map((e) => (
                     <tr key={e.id} className="border-t border-card-border">
                       <td className="py-2 align-top">{e.dateISO}</td>
-                      <td className="py-2 align-top">{e.pain}</td>
-                      <td className="py-2 align-top">{e.visits}</td>
                       <td className="py-2 align-top max-w-[480px]">
-                        <div className="line-clamp-3 whitespace-pre-wrap">{e.notes || "вЂ”"}</div>
+                        <div className="line-clamp-3 whitespace-pre-wrap">
+                          {e.notes || "—"}
+                        </div>
                       </td>
                       <td className="py-2 align-top text-right">
-                        <Button variant="ghost" onClick={() => remove(e.id)}>Remove</Button>
+                        <Button variant="ghost" onClick={() => remove(e.id)}>
+                          Remove
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -144,5 +143,3 @@ export default function CheckInsPage() {
     </div>
   );
 }
-
-

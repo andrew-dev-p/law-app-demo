@@ -2,7 +2,13 @@
 
 import { BackLink } from "@/components/app/back-link";
 import { useEffect, useMemo, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -52,10 +58,18 @@ export default function NegotiationsPage() {
   };
 
   const bestInsurer = useMemo(() => {
-    return offers.filter((o) => o.from === "Insurer").reduce((max, o) => (o.amount > (max?.amount ?? 0) ? o : max), undefined as Offer | undefined);
+    return offers
+      .filter((o) => o.from === "Insurer")
+      .reduce(
+        (max, o) => (o.amount > (max?.amount ?? 0) ? o : max),
+        undefined as Offer | undefined
+      );
   }, [offers]);
 
-  const lastClient = useMemo(() => offers.find((o) => o.from === "Client"), [offers]);
+  const lastClient = useMemo(
+    () => offers.find((o) => o.from === "Client"),
+    [offers]
+  );
 
   return (
     <div className="w-full p-6 space-y-6">
@@ -63,28 +77,49 @@ export default function NegotiationsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Negotiations</h1>
-          <p className="text-sm text-muted-foreground">Track insurer offers and propose counters.</p>
+          <p className="text-sm text-muted-foreground">
+            Track insurer offers and propose counters.
+          </p>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <Badge variant={bestInsurer ? "success" : "outline"}>Best offer: {bestInsurer ? `$${bestInsurer.amount.toLocaleString()}` : "вЂ”"}</Badge>
-          <Badge variant={lastClient ? "outline" : "destructive"}>{lastClient ? `Last counter: $${lastClient.amount.toLocaleString()}` : "No counter yet"}</Badge>
+          <Badge variant={bestInsurer ? "success" : "outline"}>
+            Best offer:{" "}
+            {bestInsurer ? `$${bestInsurer.amount.toLocaleString()}` : "-"}
+          </Badge>
+          <Badge variant={lastClient ? "outline" : "destructive"}>
+            {lastClient
+              ? `Last counter: $${lastClient.amount.toLocaleString()}`
+              : "No counter yet"}
+          </Badge>
         </div>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Propose Counter</CardTitle>
-          <CardDescription>Enter your counter amount and an optional note.</CardDescription>
+          <CardDescription>
+            Enter your counter amount and an optional note.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="amount">Amount</Label>
-              <Input id="amount" placeholder="$25,000" value={amount} onChange={(e) => setAmount(e.target.value)} />
+              <Input
+                id="amount"
+                placeholder="$25,000"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
             </div>
             <div>
               <Label htmlFor="note">Note (optional)</Label>
-              <Input id="note" placeholder="e.g., reflects ongoing PT" value={note} onChange={(e) => setNote(e.target.value)} />
+              <Input
+                id="note"
+                placeholder="e.g., reflects ongoing PT"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+              />
             </div>
           </div>
           <div className="flex justify-end">
@@ -96,11 +131,15 @@ export default function NegotiationsPage() {
       <Card>
         <CardHeader>
           <CardTitle>History</CardTitle>
-          <CardDescription>Newest first. Add insurer offers manually for demo.</CardDescription>
+          <CardDescription>
+            Newest first. Add insurer offers manually for demo.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {offers.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No activity yet.</div>
+            <div className="text-sm text-muted-foreground">
+              No activity yet.
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -117,10 +156,14 @@ export default function NegotiationsPage() {
                     <tr key={o.id} className="border-t border-card-border">
                       <td className="py-2">{o.dateISO}</td>
                       <td className="py-2">
-                        <Badge variant={o.from === "Insurer" ? "outline" : "success"}>{o.from}</Badge>
+                        <Badge
+                          variant={o.from === "Insurer" ? "outline" : "success"}
+                        >
+                          {o.from}
+                        </Badge>
                       </td>
                       <td className="py-2">${o.amount.toLocaleString()}</td>
-                      <td className="py-2">{o.note || "вЂ”"}</td>
+                      <td className="py-2">{o.note || "-"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -133,7 +176,9 @@ export default function NegotiationsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Demo Controls</CardTitle>
-          <CardDescription>Add a sample insurer offer (for testing).</CardDescription>
+          <CardDescription>
+            Add a sample insurer offer (for testing).
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-2">
@@ -154,12 +199,12 @@ export default function NegotiationsPage() {
             >
               Add Insurer Offer
             </Button>
-            <Button variant="outline" onClick={() => setOffers([])}>Clear History</Button>
+            <Button variant="outline" onClick={() => setOffers([])}>
+              Clear History
+            </Button>
           </div>
         </CardContent>
       </Card>
     </div>
   );
 }
-
-
