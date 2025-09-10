@@ -2,7 +2,13 @@
 
 import { BackLink } from "@/components/app/back-link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -27,13 +33,33 @@ type Provider = {
   };
 };
 
-type DirectoryEntry = { name: string; phone?: string; fax?: string; email?: string };
+type DirectoryEntry = {
+  name: string;
+  phone?: string;
+  fax?: string;
+  email?: string;
+};
 
 const KEY = "bills-records-providers";
 const DIRECTORY: DirectoryEntry[] = [
-  { name: "City Chiropractic", phone: "(555) 201-1122", fax: "(555) 201-1188", email: "records@citychiro.example" },
-  { name: "Metro Imaging Center", phone: "(555) 441-9000", fax: "(555) 441-9001", email: "roi@metroimg.example" },
-  { name: "General Hospital", phone: "(555) 800-3000", fax: "(555) 800-3005", email: "medical.records@generalhosp.example" },
+  {
+    name: "City Chiropractic",
+    phone: "(555) 201-1122",
+    fax: "(555) 201-1188",
+    email: "records@citychiro.example",
+  },
+  {
+    name: "Metro Imaging Center",
+    phone: "(555) 441-9000",
+    fax: "(555) 441-9001",
+    email: "roi@metroimg.example",
+  },
+  {
+    name: "General Hospital",
+    phone: "(555) 800-3000",
+    fax: "(555) 800-3005",
+    email: "medical.records@generalhosp.example",
+  },
 ];
 
 export default function BillsRecordsPage() {
@@ -76,7 +102,11 @@ export default function BillsRecordsPage() {
               return {
                 ...p,
                 recordsReceived: true,
-                request: { ...p.request, status: "done", completedAt: new Date().toISOString() },
+                request: {
+                  ...p.request,
+                  status: "done" as RequestStatus,
+                  completedAt: new Date().toISOString(),
+                },
               };
             }
           }
@@ -93,14 +123,26 @@ export default function BillsRecordsPage() {
   const add = () => {
     if (!name.trim()) return;
     setProviders((arr) => [
-      { id: crypto.randomUUID(), name: name.trim(), recordsRequested: false, recordsReceived: false, billsReceived: false },
+      {
+        id: crypto.randomUUID(),
+        name: name.trim(),
+        recordsRequested: false,
+        recordsReceived: false,
+        billsReceived: false,
+      },
       ...arr,
     ]);
     setName("");
   };
-  const remove = (id: string) => setProviders((arr) => arr.filter((p) => p.id !== id));
-  const toggle = (id: string, key: keyof Omit<Provider, "id" | "name" | "notes" | "request">) =>
-    setProviders((arr) => arr.map((p) => (p.id === id ? { ...p, [key]: !(p as any)[key] } : p)));
+  const remove = (id: string) =>
+    setProviders((arr) => arr.filter((p) => p.id !== id));
+  const toggle = (
+    id: string,
+    key: keyof Omit<Provider, "id" | "name" | "notes" | "request">
+  ) =>
+    setProviders((arr) =>
+      arr.map((p) => (p.id === id ? { ...p, [key]: !(p as any)[key] } : p))
+    );
 
   const searchDirectory = async () => {
     const term = reqName.trim();
@@ -108,7 +150,9 @@ export default function BillsRecordsPage() {
     setSearching(true);
     setSearchMsg("Searching directory…");
     await new Promise((r) => setTimeout(r, 900));
-    const hit = DIRECTORY.find((d) => d.name.toLowerCase().includes(term.toLowerCase()));
+    const hit = DIRECTORY.find((d) =>
+      d.name.toLowerCase().includes(term.toLowerCase())
+    );
     if (hit) {
       setReqName(hit.name);
       setReqPhone(hit.phone || "");
@@ -123,7 +167,9 @@ export default function BillsRecordsPage() {
 
   const requestRecords = () => {
     if (!reqName.trim()) return;
-    const exists = providers.find((p) => p.name.toLowerCase() === reqName.trim().toLowerCase());
+    const exists = providers.find(
+      (p) => p.name.toLowerCase() === reqName.trim().toLowerCase()
+    );
     const id = exists?.id || crypto.randomUUID();
     const base: Provider = exists || {
       id,
@@ -177,77 +223,134 @@ export default function BillsRecordsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Bills & Records</h1>
-          <p className="text-sm text-muted-foreground">Track providers and collection status for records and bills.</p>
+          <p className="text-sm text-muted-foreground">
+            Track providers and collection status for records and bills.
+          </p>
         </div>
         <div className="flex items-center gap-2 text-sm">
           <Badge variant="outline">Providers: {stats.total}</Badge>
-          <Badge variant={stats.requested ? "success" : "outline"}>Requested: {stats.requested}</Badge>
-          <Badge variant={stats.haveRecords ? "success" : "outline"}>Records: {stats.haveRecords}</Badge>
-          <Badge variant={(stats.haveBills + uploadCount) ? "success" : "outline"}>Bills/Docs: {stats.haveBills + uploadCount}</Badge>
+          <Badge variant={stats.requested ? "success" : "outline"}>
+            Requested: {stats.requested}
+          </Badge>
+          <Badge variant={stats.haveRecords ? "success" : "outline"}>
+            Records: {stats.haveRecords}
+          </Badge>
+          <Badge
+            variant={stats.haveBills + uploadCount ? "success" : "outline"}
+          >
+            Bills/Docs: {stats.haveBills + uploadCount}
+          </Badge>
         </div>
       </div>
-
       <Card>
         <CardHeader>
           <CardTitle>Request Records</CardTitle>
-          <CardDescription>Search a practice and send a records request. If not found, fill details.</CardDescription>
+          <CardDescription>
+            Search a practice and send a records request. If not found, fill
+            details.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="sm:col-span-2">
               <Label htmlFor="req-name">Practice name</Label>
               <div className="mt-1 flex gap-2">
-                <Input id="req-name" placeholder="e.g., City Chiropractic" value={reqName} onChange={(e) => setReqName(e.target.value)} />
-                <Button type="button" variant="outline" onClick={searchDirectory} disabled={searching}>
+                <Input
+                  id="req-name"
+                  placeholder="e.g., City Chiropractic"
+                  value={reqName}
+                  onChange={(e) => setReqName(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={searchDirectory}
+                  disabled={searching}
+                >
                   {searching ? (
-                    <span className="inline-flex items-center gap-2"><span className="inline-block h-3 w-3 rounded-full border-2 border-muted border-t-primary animate-spin" /> Searching</span>
+                    <span className="inline-flex items-center gap-2">
+                      <span className="inline-block h-3 w-3 rounded-full border-2 border-muted border-t-primary animate-spin" />{" "}
+                      Searching
+                    </span>
                   ) : (
                     "Search"
                   )}
                 </Button>
               </div>
-              {searchMsg && <div className="mt-1 text-xs text-muted-foreground">{searchMsg}</div>}
+              {searchMsg && (
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {searchMsg}
+                </div>
+              )}
             </div>
             <div>
               <Label htmlFor="req-phone">Phone</Label>
-              <Input id="req-phone" placeholder="(555) 555-1212" value={reqPhone} onChange={(e) => setReqPhone(e.target.value)} />
+              <Input
+                id="req-phone"
+                placeholder="(555) 555-1212"
+                value={reqPhone}
+                onChange={(e) => setReqPhone(e.target.value)}
+              />
             </div>
             <div>
               <Label htmlFor="req-fax">Fax</Label>
-              <Input id="req-fax" placeholder="(555) 555-3434" value={reqFax} onChange={(e) => setReqFax(e.target.value)} />
+              <Input
+                id="req-fax"
+                placeholder="(555) 555-3434"
+                value={reqFax}
+                onChange={(e) => setReqFax(e.target.value)}
+              />
             </div>
             <div className="sm:col-span-2 lg:col-span-1">
               <Label htmlFor="req-email">Records email</Label>
-              <Input id="req-email" type="email" placeholder="records@practice.com" value={reqEmail} onChange={(e) => setReqEmail(e.target.value)} />
+              <Input
+                id="req-email"
+                type="email"
+                placeholder="records@practice.com"
+                value={reqEmail}
+                onChange={(e) => setReqEmail(e.target.value)}
+              />
             </div>
             <div className="flex items-end">
-              <Button type="button" onClick={requestRecords} disabled={!reqName.trim()}>
+              <Button
+                type="button"
+                onClick={requestRecords}
+                disabled={!reqName.trim()}
+              >
                 Request Records
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Add Provider</CardTitle>
-          <CardDescription>Enter the clinic, hospital, or imaging center.</CardDescription>
+          <CardDescription>
+            Enter the clinic, hospital, or imaging center.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-2">
-            <Input placeholder="e.g., City Chiropractic" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input
+              placeholder="e.g., City Chiropractic"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
             <Button onClick={add}>Add</Button>
           </div>
         </CardContent>
-      </Card>      <Card>
+      </Card>{" "}
+      <Card>
         <CardHeader>
           <CardTitle>Providers</CardTitle>
           <CardDescription>Toggle stages as work progresses.</CardDescription>
         </CardHeader>
         <CardContent>
           {providers.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No providers yet. Add your first above.</div>
+            <div className="text-sm text-muted-foreground">
+              No providers yet. Add your first above.
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -268,29 +371,62 @@ export default function BillsRecordsPage() {
                       <td className="py-2 align-top">
                         {p.request?.status === "pending" && (
                           <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
-                            <span className="inline-block h-3 w-3 rounded-full border-2 border-muted border-t-primary animate-spin" /> Pending
+                            <span className="inline-block h-3 w-3 rounded-full border-2 border-muted border-t-primary animate-spin" />{" "}
+                            Pending
                           </span>
                         )}
                         {p.request?.status === "done" && (
                           <Badge variant="success">Done</Badge>
                         )}
                         {!p.request?.status && (
-                          <Button size="sm" variant="outline" onClick={() => { setReqName(p.name); setReqPhone(p.request?.phone || ""); setReqFax(p.request?.fax || ""); setReqEmail(p.request?.email || ""); }}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setReqName(p.name);
+                              setReqPhone(p.request?.phone || "");
+                              setReqFax(p.request?.fax || "");
+                              setReqEmail(p.request?.email || "");
+                            }}
+                          >
                             Prepare Request
                           </Button>
                         )}
                       </td>
                       <td className="py-2 align-top">
-                        <label className="inline-flex items-center gap-2"><input type="checkbox" checked={p.recordsRequested} onChange={() => toggle(p.id, "recordsRequested")} /> Requested</label>
+                        <label className="inline-flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={p.recordsRequested}
+                            onChange={() => toggle(p.id, "recordsRequested")}
+                          />{" "}
+                          Requested
+                        </label>
                       </td>
                       <td className="py-2 align-top">
-                        <label className="inline-flex items-center gap-2"><input type="checkbox" checked={p.recordsReceived} onChange={() => toggle(p.id, "recordsReceived")} /> Received</label>
+                        <label className="inline-flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={p.recordsReceived}
+                            onChange={() => toggle(p.id, "recordsReceived")}
+                          />{" "}
+                          Received
+                        </label>
                       </td>
                       <td className="py-2 align-top">
-                        <label className="inline-flex items-center gap-2"><input type="checkbox" checked={p.billsReceived} onChange={() => toggle(p.id, "billsReceived")} /> Received</label>
+                        <label className="inline-flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={p.billsReceived}
+                            onChange={() => toggle(p.id, "billsReceived")}
+                          />{" "}
+                          Received
+                        </label>
                       </td>
                       <td className="py-2 align-top text-right">
-                        <Button variant="ghost" onClick={() => remove(p.id)}>Remove</Button>
+                        <Button variant="ghost" onClick={() => remove(p.id)}>
+                          Remove
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -303,4 +439,3 @@ export default function BillsRecordsPage() {
     </div>
   );
 }
-
