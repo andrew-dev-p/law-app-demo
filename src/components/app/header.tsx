@@ -5,8 +5,16 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import * as React from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { LayoutDashboard, Settings as SettingsIcon, Menu as MenuIcon } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  LayoutDashboard,
+  Settings as SettingsIcon,
+  Menu as MenuIcon,
+} from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
@@ -22,7 +30,12 @@ function MobileMenu() {
     <div className="md:hidden">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button aria-label="Open menu" size="icon" variant="outline" className="text-foreground border-border hover:bg-muted">
+          <Button
+            aria-label="Open menu"
+            size="icon"
+            variant="outline"
+            className="text-foreground border-border hover:bg-muted"
+          >
             <MenuIcon className="h-5 w-5" />
           </Button>
         </PopoverTrigger>
@@ -30,7 +43,8 @@ function MobileMenu() {
           <div className="py-1">
             {navItems.map((item) => {
               const active = pathname?.startsWith(item.href);
-              const Icon = item.href === "/dashboard" ? LayoutDashboard : SettingsIcon;
+              const Icon =
+                item.href === "/dashboard" ? LayoutDashboard : SettingsIcon;
               return (
                 <Link
                   key={item.href}
@@ -41,7 +55,12 @@ function MobileMenu() {
                   )}
                   onClick={() => setOpen(false)}
                 >
-                  <Icon className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground")} />
+                  <Icon
+                    className={cn(
+                      "h-4 w-4",
+                      active ? "text-primary" : "text-muted-foreground"
+                    )}
+                  />
                   {item.label}
                 </Link>
               );
@@ -57,13 +76,16 @@ export function AppHeader() {
   const pathname = usePathname();
   return (
     <header className="sticky top-0 z-40 w-full border-b border-card-border bg-white text-foreground shadow-sm">
-      <div className="max-w-6xl mx-auto relative flex h-14 items-center justify-between px-4">
+      <div className="relative flex h-14 items-center justify-between px-6">
         <div className="flex items-center gap-6">
-          <Link href="/" className="font-semibold">Client Portal</Link>
+          <Link href="/" className="font-semibold">
+            Client Portal
+          </Link>
           <nav className="hidden md:flex items-center gap-2 overflow-x-auto no-scrollbar">
             {navItems.map((item) => {
               const active = pathname?.startsWith(item.href);
-              const Icon = item.href === "/dashboard" ? LayoutDashboard : SettingsIcon;
+              const Icon =
+                item.href === "/dashboard" ? LayoutDashboard : SettingsIcon;
               return (
                 <Link
                   key={item.href}
@@ -75,7 +97,12 @@ export function AppHeader() {
                       : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
                   )}
                 >
-                  <Icon className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground")} />
+                  <Icon
+                    className={cn(
+                      "h-4 w-4",
+                      active ? "text-primary" : "text-muted-foreground"
+                    )}
+                  />
                   {item.label}
                 </Link>
               );
@@ -84,7 +111,11 @@ export function AppHeader() {
         </div>
         <div className="flex items-center gap-2">
           <SignedOut>
-            <Button asChild variant="outline" className="border-border text-foreground hover:bg-muted">
+            <Button
+              asChild
+              variant="outline"
+              className="border-border text-foreground hover:bg-muted"
+            >
               <Link href="/sign-in">Sign in</Link>
             </Button>
             <Button asChild>
