@@ -12,6 +12,12 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CheckIcon } from "lucide-react";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   IncidentReminders,
   getIncidentReminders,
   materializeIncidentReminders,
@@ -202,6 +208,17 @@ export default function DashboardPage() {
   }, [steps]);
 
   const currentStepIndex = counts.currentIndex;
+  const firstIncompleteIndex = useMemo(
+    () => steps.findIndex((s) => !s.optional && !s.done),
+    [steps]
+  );
+  const currentStep =
+    firstIncompleteIndex === -1 ? null : steps[firstIncompleteIndex];
+  const completedSteps = useMemo(() => steps.filter((s) => s.done), [steps]);
+  const upcomingSteps = useMemo(
+    () => steps.filter((s, idx) => !s.done && idx !== firstIncompleteIndex),
+    [steps, firstIncompleteIndex]
+  );
 
   return (
     <div className="w-full p-6 space-y-6">
@@ -219,7 +236,7 @@ export default function DashboardPage() {
             Complete the current step; the next one will appear.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           <div className="mb-4 rounded-md border border-card-border p-3 bg-card">
             <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
               <span>Progress</span>
@@ -229,82 +246,153 @@ export default function DashboardPage() {
             </div>
             <Progress value={counts.percent} className="h-2" />
           </div>
-          <ul className="space-y-2">
-            {steps.map((s, i) => {
-              const isCurrent = i === currentStepIndex;
-              return (
-                <li
-                  key={s.id}
-                  className="rounded-md border border-card-border overflow-hidden"
-                >
-                  <div className="flex items-center justify-between px-3 py-2">
-                    <div className="flex items-center gap-3">
-                      <span
-                        aria-hidden
-                        className={`inline-flex h-5 w-5 items-center justify-center rounded-full border text-xs ${
-                          s.done
-                            ? "bg-[hsl(var(--success))] text-white border-transparent"
-                            : isCurrent
-                            ? "border-[hsl(var(--primary))]"
-                            : "border-border"
-                        }`}
-                      >
-                        {s.done ? <CheckIcon className="h-4 w-4" /> : i + 1}
+
+          {/* Current step spotlight */}
+          {currentStep && (
+            <div className="rounded-md border border-[hsl(var(--primary))] bg-card shadow-sm lightblue-glow">
+              <div className="flex items-center justify-between px-3 py-3">
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border text-xs border-[hsl(var(--primary))]">
+                    {firstIncompleteIndex + 1}
+                  </span>
+                  <div>
+                    <div className="text-sm font-semibold">
+                      {currentStep.title}
+                      {currentStep.optional ? " (optional)" : ""}
+                      <span className="ml-2 text-xs text-primary align-middle">
+                        Current
                       </span>
-                      <div>
-                        <div className="text-sm font-medium">
-                          {s.title}
-                          {s.optional ? " (optional)" : ""}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {currentStep.desc}
+                    </p>
+                    {currentStep.id === "intake" &&
+                      incidentReminders?.enabled && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          <Badge variant="outline">
+                            Incident voice reminder (SMS):{" "}
+                            {incidentReminders.sms.status}
+                          </Badge>
+                          <Badge variant="outline">
+                            Incident voice reminder (Call):{" "}
+                            {incidentReminders.call.status}
+                          </Badge>
                         </div>
-                        {!isCurrent && (
-                          <div className="text-xs text-muted-foreground">
-                            {s.done ? "Completed" : "Pending"}
-                          </div>
-                        )}
-                        {s.id === "intake" && incidentReminders?.enabled && (
-                          <div className="mt-1 flex flex-wrap gap-1">
-                            <Badge variant="outline">
-                              Incident voice reminder (SMS):{" "}
-                              {incidentReminders.sms.status}
-                            </Badge>
-                            <Badge variant="outline">
-                              Incident voice reminder (Call):{" "}
-                              {incidentReminders.call.status}
-                            </Badge>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    {!isCurrent && (
-                      <a
-                        href={s.href}
-                        className="text-xs text-primary hover:text-primary/80"
-                      >
-                        Open
-                      </a>
-                    )}
+                      )}
                   </div>
-                  {isCurrent && !s.done && (
-                    <div className="border-t border-card-border px-3 py-3 bg-card">
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {s.desc}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <Button asChild>
-                          <a href={s.href}>Go to {s.title.split(" ")[0]}</a>
-                        </Button>
-                        {i + 1 < steps.length && (
-                          <span className="text-xs text-muted-foreground">
-                            Next up: {steps[i + 1].title}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                </div>
+              </div>
+              <div className="border-t border-card-border px-3 py-3">
+                <div className="flex items-center gap-2">
+                  <Button asChild>
+                    <a href={currentStep.href}>
+                      Go to {currentStep.title.split(" ")[0]}
+                    </a>
+                  </Button>
+                  {firstIncompleteIndex + 1 < steps.length && (
+                    <span className="text-xs text-muted-foreground">
+                      Next up: {steps[firstIncompleteIndex + 1].title}
+                    </span>
                   )}
-                </li>
-              );
-            })}
-          </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Completed accordion */}
+          {completedSteps.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-muted-foreground">
+                Completed
+              </h3>
+              <Accordion type="multiple" className="w-full">
+                {completedSteps.map((s) => {
+                  const index = steps.findIndex((x) => x.id === s.id);
+                  return (
+                    <AccordionItem key={s.id} value={s.id}>
+                      <AccordionTrigger>
+                        <div className="flex w-full items-start justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border text-xs bg-[hsl(var(--success))] text-white border-transparent">
+                              <CheckIcon className="h-4 w-4" />
+                            </span>
+                            <div className="text-sm font-medium">{s.title}</div>
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            Step {index + 1}
+                          </span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-3">
+                        <div className="px-1 text-sm text-muted-foreground">
+                          Completed
+                        </div>
+                        <Button asChild>
+                          <a href={s.href}>Open</a>
+                        </Button>
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
+            </div>
+          )}
+
+          {/* Upcoming accordion */}
+          {upcomingSteps.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-muted-foreground">
+                Upcoming
+              </h3>
+              <Accordion type="multiple" className="w-full">
+                {upcomingSteps.map((s) => {
+                  const index = steps.findIndex((x) => x.id === s.id);
+                  return (
+                    <AccordionItem key={s.id} value={s.id}>
+                      <AccordionTrigger>
+                        <div className="flex w-full items-start justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border text-xs border-border">
+                              {index + 1}
+                            </span>
+                            <div className="text-sm font-medium">
+                              {s.title}
+                              {s.optional ? " (optional)" : ""}
+                            </div>
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            Pending
+                          </span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="px-1">
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {s.desc}
+                          </p>
+                          {s.id === "intake" && incidentReminders?.enabled && (
+                            <div className="mb-3 flex flex-wrap gap-1">
+                              <Badge variant="outline">
+                                Incident voice reminder (SMS):{" "}
+                                {incidentReminders.sms.status}
+                              </Badge>
+                              <Badge variant="outline">
+                                Incident voice reminder (Call):{" "}
+                                {incidentReminders.call.status}
+                              </Badge>
+                            </div>
+                          )}
+                          <Button asChild>
+                            <a href={s.href}>Open</a>
+                          </Button>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
+            </div>
+          )}
         </CardContent>
       </Card>
 
