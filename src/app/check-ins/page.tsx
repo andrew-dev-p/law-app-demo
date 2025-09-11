@@ -75,14 +75,14 @@ export default function CheckInsPage() {
         {!showVoice ? (
           <div className="flex items-center justify-between pr-6">
             <CardHeader>
-              <CardTitle>Voice Check-in</CardTitle>
+              <CardTitle>Law AI Agent Check-In</CardTitle>
               <CardDescription>
                 Tap the mic and speak your update.
               </CardDescription>
             </CardHeader>
             <Button onClick={() => setShowVoice(true)}>
               <Mic size={16} />
-              Open Voice Recorder
+              Speak to Agent
             </Button>
           </div>
         ) : (
