@@ -565,9 +565,14 @@ export default function IntakePage() {
             const isValid = getCurrentStepValidation(state, step);
             if (!isLastStep) {
               return (
-                <Button onClick={next} disabled={!isValid}>
-                  Continue
-                </Button>
+                <div className="flex items-center gap-3">
+                  <p className="text-xs text-muted-foreground">
+                    Press <span className="font-bold">Enter</span> to continue
+                  </p>
+                  <Button onClick={next} disabled={!isValid}>
+                    Continue
+                  </Button>
+                </div>
               );
             }
             return (

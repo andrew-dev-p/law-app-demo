@@ -240,8 +240,8 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.3 }}
             >
-              <CardTitle>Steps</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg">Steps</CardTitle>
+              <CardDescription className="text-sm">
                 Complete the current step; the next one will appear.
               </CardDescription>
             </motion.div>
@@ -271,10 +271,13 @@ export default function DashboardPage() {
               {/* Current step spotlight */}
               {currentStep && (
                 <motion.div
-                  className="rounded-md border border-[hsl(var(--primary))] bg-card shadow-sm lightblue-glow"
+                  className="rounded-md border border-[hsl(var(--primary))] bg-card shadow-sm lightblue-glow cursor-pointer transition hover:bg-primary/2"
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.1, duration: 0.4 }}
+                  onClick={() => {
+                    window.location.href = currentStep.href;
+                  }}
                 >
                   <div className="flex items-center justify-between px-3 py-3">
                     <div className="flex items-center gap-3">
