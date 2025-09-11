@@ -264,16 +264,18 @@ export default function DashboardPage() {
                         {s.id === "intake" && incidentReminders?.enabled && (
                           <div className="mt-1 flex flex-wrap gap-1">
                             <Badge variant="outline">
-                              Incident voice reminder (SMS): {incidentReminders.sms.status}
+                              Incident voice reminder (SMS):{" "}
+                              {incidentReminders.sms.status}
                             </Badge>
                             <Badge variant="outline">
-                              Incident voice reminder (Call): {incidentReminders.call.status}
+                              Incident voice reminder (Call):{" "}
+                              {incidentReminders.call.status}
                             </Badge>
                           </div>
                         )}
                       </div>
                     </div>
-                    {!s.done && !isCurrent && (
+                    {!isCurrent && (
                       <a
                         href={s.href}
                         className="text-xs text-primary hover:text-primary/80"
