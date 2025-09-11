@@ -10,7 +10,12 @@ export interface StepHeaderProps {
   progress: number; // 0-100
 }
 
-export function StepHeader({ steps, current, onSelect, progress }: StepHeaderProps) {
+export function StepHeader({
+  steps,
+  current,
+  onSelect,
+  progress,
+}: StepHeaderProps) {
   return (
     <>
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -32,7 +37,9 @@ export function StepHeader({ steps, current, onSelect, progress }: StepHeaderPro
                 <span
                   className={cn(
                     "inline-flex h-4 w-4 items-center justify-center rounded-full border text-[10px]",
-                    i === current ? "border-primary/60 bg-background/20" : "border-border bg-background"
+                    i === current
+                      ? "border-primary/60 bg-background/20"
+                      : "border-border bg-background"
                   )}
                 >
                   {i + 1}
@@ -42,10 +49,11 @@ export function StepHeader({ steps, current, onSelect, progress }: StepHeaderPro
             ))}
           </div>
         </div>
-        <span className="shrink-0 text-xs sm:text-sm text-muted-foreground">{Math.round(progress)}% complete</span>
+        <span className="shrink-0 text-xs sm:text-sm text-muted-foreground">
+          {Math.round(progress)}% complete
+        </span>
       </div>
       <Progress value={progress} className="mb-6" />
     </>
   );
 }
-

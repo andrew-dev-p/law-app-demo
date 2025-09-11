@@ -8,21 +8,11 @@ export type PersonalInfo = {
 };
 
 export type IncidentInfo = {
-  date: string;
-  location: string;
-  type: "Auto" | "Slip and Fall" | "Workplace" | "Other" | "";
-  description: string;
-  policeReport: "yes" | "no" | "";
-  claimNumber: string;
   transcript?: string;
 };
 
 export type MedicalInfo = {
-  injuries: string[];
-  seenDoctor: "yes" | "no" | "";
-  needReferral: boolean;
-  preferredProvider: string;
-  city: string;
+  transcript?: string;
 };
 
 export type UploadItem = {
@@ -63,19 +53,10 @@ export const defaultState: IntakeState = {
     address: "",
   },
   incident: {
-    date: "",
-    location: "",
-    type: "",
-    description: "",
-    policeReport: "",
-    claimNumber: "",
+    transcript: "",
   },
   medical: {
-    injuries: [],
-    seenDoctor: "",
-    needReferral: false,
-    preferredProvider: "",
-    city: "",
+    transcript: "",
   },
   uploads: [],
   agreed: false,
@@ -95,4 +76,4 @@ export const steps = [
   { key: "review", title: "Review & Submit" },
 ] as const;
 
-export type Step = typeof steps[number];
+export type Step = (typeof steps)[number];
