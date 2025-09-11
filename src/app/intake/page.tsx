@@ -610,7 +610,7 @@ export default function IntakePage() {
       {isQuestionnaireComplete && (
         <motion.div
           className="mt-6"
-          initial={{ opacity: 0, y: 30, scale: 0.95 }}
+          initial={{ opacity: 0, y: 8, scale: 0.975 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{
             duration: 0.6,
