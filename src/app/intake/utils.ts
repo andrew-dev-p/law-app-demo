@@ -71,3 +71,81 @@ export const isLastStep = (step: number) => step === TOTAL_QUESTIONS - 1;
 
 export const getProgress = (step: number) =>
   ((Math.min(step, TOTAL_QUESTIONS - 1) + 1) / TOTAL_QUESTIONS) * 100;
+
+export const getCompletedSteps = (
+  state: IntakeState,
+  currentStep: number
+): number[] => {
+  const validList = getValidationList(state);
+  const completed: number[] = [];
+
+  // Check each section's completion
+  const sections = [
+    // Personal section (steps 0-4)
+    { start: 0, end: 4, sectionIndex: 0 },
+    // Incident section (step 5)
+    { start: 5, end: 5, sectionIndex: 1 },
+    // Medical section (step 6)
+    { start: 6, end: 6, sectionIndex: 2 },
+    // Uploads section (steps 7-9)
+    { start: 7, end: 9, sectionIndex: 3 },
+    // Agreements section (steps 10-12)
+    { start: 10, end: 12, sectionIndex: 4 },
+    // Review section (step 13)
+    { start: 13, end: 13, sectionIndex: 5 },
+  ];
+
+  sections.forEach(({ start, end, sectionIndex }) => {
+    // Check if all steps in this section are valid
+    const sectionSteps = validList.slice(start, end + 1);
+    const isSectionComplete = sectionSteps.every((valid) => valid === true);
+
+    // Also check if we've moved past this section
+    const isPastSection = currentStep > end;
+
+    if (isSectionComplete && isPastSection) {
+      completed.push(sectionIndex);
+    }
+  });
+
+  return completed;
+};
+
+// Check if moving to nextStep will complete a new section
+export const checkSectionCompletion = (
+  state: IntakeState,
+  currentStep: number,
+  nextStep: number
+): number | null => {
+  const validList = getValidationList(state);
+
+  // Check each section's completion
+  const sections = [
+    // Personal section (steps 0-4)
+    { start: 0, end: 4, sectionIndex: 0 },
+    // Incident section (step 5)
+    { start: 5, end: 5, sectionIndex: 1 },
+    // Medical section (step 6)
+    { start: 6, end: 6, sectionIndex: 2 },
+    // Uploads section (steps 7-9)
+    { start: 7, end: 9, sectionIndex: 3 },
+    // Agreements section (steps 10-12)
+    { start: 10, end: 12, sectionIndex: 4 },
+    // Review section (step 13)
+    { start: 13, end: 13, sectionIndex: 5 },
+  ];
+
+  for (const { start, end, sectionIndex } of sections) {
+    // Check if nextStep is the step that completes this section
+    if (nextStep > end && currentStep <= end) {
+      const sectionSteps = validList.slice(start, end + 1);
+      const isSectionComplete = sectionSteps.every((valid) => valid === true);
+
+      if (isSectionComplete) {
+        return sectionIndex;
+      }
+    }
+  }
+
+  return null;
+};

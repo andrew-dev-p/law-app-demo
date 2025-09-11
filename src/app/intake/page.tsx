@@ -2,8 +2,10 @@
 
 import { BackLink } from "@/components/app/back-link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
+import { Check, Trophy } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -43,6 +45,8 @@ import {
   isQuestionnaireComplete as isQuestionnaireCompleteFn,
   isLastStep as isLastStepFn,
   getProgress,
+  getCompletedSteps,
+  checkSectionCompletion,
 } from "./utils";
 
 export default function IntakePage() {
@@ -156,11 +160,61 @@ export default function IntakePage() {
   );
   const isLastStep = useMemo(() => isLastStepFn(step), [step]);
   const progress = useMemo(() => getProgress(step), [step]);
-
-  const next = useCallback(
-    () => setStep((s) => Math.min(s + 1, TOTAL_QUESTIONS)),
-    []
+  const completedSteps = useMemo(
+    () => getCompletedSteps(state, step),
+    [state, step]
   );
+
+  // Success animation component for form fields
+  const FieldSuccessIndicator = ({ show }: { show: boolean }) => (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 500, damping: 25 }}
+          className="absolute right-2 top-1/2 -translate-y-1/2"
+        >
+          <motion.div
+            animate={{
+              rotate: [0, 10, -10, 0],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{ duration: 0.5 }}
+          >
+            <Check className="h-4 w-4 text-green-500" />
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  const next = useCallback(() => {
+    const nextStep = Math.min(step + 1, TOTAL_QUESTIONS);
+    const completedSectionIndex = checkSectionCompletion(state, step, nextStep);
+
+    if (completedSectionIndex !== null) {
+      const sectionNames = [
+        "Personal Info",
+        "Incident Details",
+        "Medical Info",
+        "Documents",
+        "Agreements",
+        "Review",
+      ];
+      const completedSection = sectionNames[completedSectionIndex];
+
+      toast.success(`${completedSection} Complete!`, {
+        description: "Great progress! Keep going.",
+        icon: <Trophy className="h-4 w-4" />,
+        duration: 3000,
+        position: "bottom-center",
+      });
+    }
+
+    setStep(nextStep);
+  }, [step, state]);
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
   const onFileUpload = useCallback((items: UploadItem[]) => {
@@ -472,6 +526,9 @@ export default function IntakePage() {
             setStep(SECTION_STARTS[i] ?? 0);
           }}
           progress={progress}
+          completedSteps={completedSteps}
+          currentQuestion={step + 1}
+          totalQuestions={TOTAL_QUESTIONS}
         />
       ) : (
         <div className="mb-6 flex items-center justify-between">

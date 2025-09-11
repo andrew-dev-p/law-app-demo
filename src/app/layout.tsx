@@ -10,7 +10,7 @@ const mulish = Mulish({
   variable: "--font-mulish",
   subsets: ["latin"],
   display: "swap",
-  weight: ["300","400","500","600","700"]
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -30,12 +30,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${mulish.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground font-sans`}>
+      <body
+        className={`${mulish.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground font-sans`}
+      >
         <ClerkProvider>
           <AppHeader />
           <SetupAccountGate />
           <main className="min-h-[calc(100vh-57px)]">{children}</main>
-          <Toaster position="top-right" richColors closeButton />
+          <Toaster position="bottom-center" richColors closeButton />
         </ClerkProvider>
       </body>
     </html>
