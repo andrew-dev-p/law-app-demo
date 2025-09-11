@@ -608,7 +608,16 @@ export default function IntakePage() {
       )}
 
       {isQuestionnaireComplete && (
-        <div className="mt-6">
+        <motion.div
+          className="mt-6"
+          initial={{ opacity: 0, y: 30, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{
+            duration: 0.6,
+            ease: [0.25, 0.46, 0.45, 0.94],
+            delay: 0.2,
+          }}
+        >
           <Card>
             <CardHeader>
               <CardTitle>Intake Submitted</CardTitle>
@@ -627,7 +636,7 @@ export default function IntakePage() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
       )}
     </div>
   );
