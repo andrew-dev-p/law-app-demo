@@ -58,7 +58,7 @@ export function IncidentVoice({ transcript, onSave }: IncidentVoiceProps) {
         {transcript ? (
           <motion.div
             key="transcript"
-            className="rounded-md border p-3 text-sm whitespace-pre-wrap"
+            className="rounded-md border-border p-3 text-sm whitespace-pre-wrap"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}

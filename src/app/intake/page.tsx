@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { AgreementsForm } from "./_components/AgreementsForm";
 import { IncidentVoice } from "./_components/IncidentVoice";
 import { MedicalForm } from "./_components/MedicalForm";
+import { MedicalVoice } from "./_components/MedicalVoice";
 import { PersonalForm } from "./_components/PersonalForm";
 import { ReviewSection } from "./_components/ReviewSection";
 import { StepHeader } from "./_components/StepHeader";
@@ -133,17 +134,31 @@ export default function IntakePage() {
   const next = () => setStep((s) => Math.min(s + 1, steps.length));
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
-  const onFileChange = (files: FileList | null) => {
+  const onFileChange = (
+    files: FileList | null,
+    category?: UploadItem["category"]
+  ) => {
     if (!files) return;
     const items: UploadItem[] = Array.from(files).map((f) => ({
       id: crypto.randomUUID(),
       name: f.name,
       size: f.size,
+      mime: f.type,
+      url: f.type.startsWith("image/") ? URL.createObjectURL(f) : undefined,
+      category,
     }));
     setState((s) => ({ ...s, uploads: [...s.uploads, ...items] }));
   };
   const removeUpload = (id: string) =>
-    setState((s) => ({ ...s, uploads: s.uploads.filter((u) => u.id !== id) }));
+    setState((s) => {
+      const toRemove = s.uploads.find((u) => u.id === id);
+      if (toRemove?.url) {
+        try {
+          URL.revokeObjectURL(toRemove.url);
+        } catch {}
+      }
+      return { ...s, uploads: s.uploads.filter((u) => u.id !== id) };
+    });
 
   const submit = () => {
     // Frontend-only demo: pretend to submit
@@ -232,9 +247,9 @@ export default function IntakePage() {
             )}
 
             {step === 2 && (
-              <MedicalForm
+              <MedicalVoice
                 value={state.medical}
-                onChange={(next) =>
+                onSave={(next) =>
                   setState((s) => ({
                     ...s,
                     medical: { ...s.medical, ...next },

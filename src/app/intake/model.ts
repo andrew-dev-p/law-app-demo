@@ -25,7 +25,14 @@ export type MedicalInfo = {
   city: string;
 };
 
-export type UploadItem = { id: string; name: string; size: number };
+export type UploadItem = {
+  id: string;
+  name: string;
+  size: number;
+  mime?: string;
+  url?: string; // object URL for preview
+  category?: "license" | "insurance" | "evidence";
+};
 
 export type Agreement = {
   initials: string;

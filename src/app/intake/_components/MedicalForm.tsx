@@ -48,7 +48,7 @@ export function MedicalForm({ value, onChange }: MedicalFormProps) {
                   key={inj}
                   type="button"
                   className={cn(
-                    "px-3 py-1.5 rounded-md text-sm border text-left",
+                    "px-3 py-1.5 rounded-md text-sm border-border text-left",
                     active
                       ? "bg-primary text-primary-foreground"
                       : "bg-background hover:bg-accent"
@@ -73,7 +73,7 @@ export function MedicalForm({ value, onChange }: MedicalFormProps) {
                 key={v}
                 type="button"
                 className={cn(
-                  "px-3 py-1.5 rounded-md text-sm border",
+                  "px-3 py-1.5 rounded-md text-sm border-border",
                   value.seenDoctor === v
                     ? "bg-primary text-primary-foreground"
                     : "bg-background hover:bg-accent"
@@ -97,7 +97,7 @@ export function MedicalForm({ value, onChange }: MedicalFormProps) {
                 key={String(v)}
                 type="button"
                 className={cn(
-                  "px-3 py-1.5 rounded-md text-sm border",
+                  "px-3 py-1.5 rounded-md text-sm border-border",
                   value.needReferral === v
                     ? "bg-primary text-primary-foreground"
                     : "bg-background hover:bg-accent"
