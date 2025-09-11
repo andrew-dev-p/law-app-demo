@@ -288,7 +288,7 @@ export default function DashboardPage() {
                         <div className="text-sm font-semibold">
                           {currentStep.title}
                           {currentStep.optional ? " (optional)" : ""}
-                          <span className="ml-2 text-xs text-primary align-middle">
+                          <span className="ml-2 text-xs text-primary">
                             Current
                           </span>
                         </div>
