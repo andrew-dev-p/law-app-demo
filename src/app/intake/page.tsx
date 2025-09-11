@@ -266,45 +266,48 @@ export default function IntakePage() {
                 onAgreedChange={(agreed) => setState((s) => ({ ...s, agreed }))}
               />
             )}
-
-            <div className="flex items-center justify-between pt-2">
-              <Button variant="secondary" onClick={back} disabled={step === 0}>
-                Back
-              </Button>
-              {step < steps.length - 1 ? (
-                <Button
-                  onClick={next}
-                  disabled={
-                    (step === 0 &&
-                      (!state.personal.firstName ||
-                        !state.personal.lastName ||
-                        !state.personal.email)) ||
-                    (step === 1 &&
-                      (!state.incident.transcript ||
-                        !state.incident.transcript.trim())) ||
-                    (step === 2 && !state.medical.seenDoctor) ||
-                    (step === 4 &&
-                      (!state.agreements.hipaa.initials ||
-                        !state.agreements.hipaa.date ||
-                        !state.agreements.hipaa.agreed ||
-                        !state.agreements.representation.initials ||
-                        !state.agreements.representation.date ||
-                        !state.agreements.representation.agreed ||
-                        !state.agreements.fee.initials ||
-                        !state.agreements.fee.date ||
-                        !state.agreements.fee.agreed))
-                  }
-                >
-                  Continue
-                </Button>
-              ) : (
-                <Button onClick={submit} disabled={!state.agreed}>
-                  Submit Intake
-                </Button>
-              )}
-            </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Step navigation below the card for better UX */}
+      {step < steps.length && (
+        <div className="mt-3 flex items-center justify-between">
+          <Button variant="secondary" onClick={back} disabled={step === 0}>
+            Back
+          </Button>
+          {step < steps.length - 1 ? (
+            <Button
+              onClick={next}
+              disabled={
+                (step === 0 &&
+                  (!state.personal.firstName ||
+                    !state.personal.lastName ||
+                    !state.personal.email)) ||
+                (step === 1 &&
+                  (!state.incident.transcript ||
+                    !state.incident.transcript.trim())) ||
+                (step === 2 && !state.medical.seenDoctor) ||
+                (step === 4 &&
+                  (!state.agreements.hipaa.initials ||
+                    !state.agreements.hipaa.date ||
+                    !state.agreements.hipaa.agreed ||
+                    !state.agreements.representation.initials ||
+                    !state.agreements.representation.date ||
+                    !state.agreements.representation.agreed ||
+                    !state.agreements.fee.initials ||
+                    !state.agreements.fee.date ||
+                    !state.agreements.fee.agreed))
+              }
+            >
+              Continue
+            </Button>
+          ) : (
+            <Button onClick={submit} disabled={!state.agreed}>
+              Submit Intake
+            </Button>
+          )}
+        </div>
       )}
 
       {step >= steps.length && (

@@ -17,11 +17,19 @@ export function IncidentForm({ value, onChange }: IncidentFormProps) {
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="date">Incident date</Label>
-          <DatePicker id="date" value={value.date} onChange={(v) => onChange({ date: v })} />
+          <DatePicker
+            id="date"
+            value={value.date}
+            onChange={(v) => onChange({ date: v })}
+          />
         </div>
         <div>
           <Label htmlFor="location">Location (city / state)</Label>
-          <Input id="location" value={value.location} onChange={(e) => onChange({ location: e.target.value })} />
+          <Input
+            id="location"
+            value={value.location}
+            onChange={(e) => onChange({ location: e.target.value })}
+          />
         </div>
       </div>
 
@@ -34,7 +42,9 @@ export function IncidentForm({ value, onChange }: IncidentFormProps) {
               type="button"
               className={cn(
                 "px-3 py-1.5 rounded-md text-sm border",
-                value.type === t ? "bg-primary text-primary-foreground" : "bg-background hover:bg-accent text-foreground"
+                value.type === t
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-background hover:bg-accent text-foreground"
               )}
               onClick={() => onChange({ type: t as IncidentInfo["type"] })}
             >
@@ -66,7 +76,9 @@ export function IncidentForm({ value, onChange }: IncidentFormProps) {
                 type="button"
                 className={cn(
                   "px-3 py-1.5 rounded-md text-sm border",
-                  value.policeReport === v ? "bg-primary text-primary-foreground" : "bg-background hover:bg-accent"
+                  value.policeReport === v
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background hover:bg-accent"
                 )}
                 onClick={() => onChange({ policeReport: v as "yes" | "no" })}
               >
@@ -77,10 +89,13 @@ export function IncidentForm({ value, onChange }: IncidentFormProps) {
         </div>
         <div>
           <Label htmlFor="claim">Claim number (if any)</Label>
-          <Input id="claim" value={value.claimNumber} onChange={(e) => onChange({ claimNumber: e.target.value })} />
+          <Input
+            id="claim"
+            value={value.claimNumber}
+            onChange={(e) => onChange({ claimNumber: e.target.value })}
+          />
         </div>
       </div>
     </div>
   );
 }
-
