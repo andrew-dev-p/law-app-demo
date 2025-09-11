@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
 import { Check, Trophy } from "lucide-react";
 import { toast } from "sonner";
+import Confetti from "react-confetti";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -53,6 +54,7 @@ export default function IntakePage() {
   const { user } = useUser();
 
   const [step, setStep] = useState<number>(0);
+  const [showConfetti, setShowConfetti] = useState<boolean>(false);
 
   // TODO: Remove localStorage for demo
   const [state, setState] = useState<IntakeState>(() => {
@@ -475,6 +477,9 @@ export default function IntakePage() {
 
   const submit = () => {
     setStep(TOTAL_QUESTIONS);
+    setShowConfetti(true);
+    // Hide confetti after 5 seconds
+    setTimeout(() => setShowConfetti(false), 5000);
   };
 
   // Schedule reminders if incident voice not completed (question 5)
@@ -509,7 +514,25 @@ export default function IntakePage() {
   }, [step, state, next, isLastStep]);
 
   return (
-    <div className="w-full p-6">
+    <div className="w-full p-6 relative">
+      {showConfetti && (
+        <Confetti
+          width={typeof window !== "undefined" ? window.innerWidth : 1000}
+          height={typeof window !== "undefined" ? window.innerHeight : 800}
+          recycle={false}
+          numberOfPieces={150}
+          gravity={0.5}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            pointerEvents: "none",
+            zIndex: 9999,
+          }}
+        />
+      )}
       <BackLink className="mb-3" />
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">Client Intake</h1>
