@@ -1,10 +1,17 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { SignedIn, useUser } from "@clerk/nextjs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 
 export function SetupAccountGate() {
   const { isLoaded, user } = useUser();
@@ -13,12 +20,14 @@ export function SetupAccountGate() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [dob, setDob] = useState("");
+  const [ssn, setSsn] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const alreadyCompleted = useMemo(() => {
     // Track completion in unsafeMetadata (client-writable)
-    return Boolean((user?.unsafeMetadata as any)?.setupCompleted);
+    return Boolean(user?.unsafeMetadata?.setupCompleted);
   }, [user]);
 
   useEffect(() => {
@@ -27,12 +36,21 @@ export function SetupAccountGate() {
     setFirstName(user.firstName || "");
     setLastName(user.lastName || "");
     setEmail(preEmail);
-    setPhone(((user.unsafeMetadata as any)?.contactPhone as string) || "");
+    setPhone((user.unsafeMetadata?.contactPhone as string) || "");
+    setDob((user.unsafeMetadata?.contactDob as string) || "");
+    setSsn((user.unsafeMetadata?.contactSsn as string) || "");
     // Open if not completed yet
     setOpen(!alreadyCompleted);
   }, [isLoaded, user, alreadyCompleted]);
 
-  const disabled = saving || !firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim();
+  const disabled =
+    saving ||
+    !firstName.trim() ||
+    !lastName.trim() ||
+    !email.trim() ||
+    !phone.trim() ||
+    !dob.trim() ||
+    !ssn.trim();
 
   const submit = async () => {
     if (!user) return;
@@ -49,11 +67,13 @@ export function SetupAccountGate() {
           contactLastName: lastName.trim(),
           contactEmail: email.trim(),
           contactPhone: phone.trim(),
+          contactDob: dob.trim(),
+          contactSsn: ssn.trim(),
         },
-      } as any);
+      });
       setOpen(false);
-    } catch (e: any) {
-      setError(e?.message || "Failed to save. Please try again.");
+    } catch (e: unknown) {
+      setError((e as Error)?.message || "Failed to save. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -66,31 +86,75 @@ export function SetupAccountGate() {
       <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Setup Account</CardTitle>
-            <CardDescription>Help us contact you with case updates.</CardDescription>
+            <CardTitle>Welcome! Let&apos;s get your money.</CardTitle>
+            <CardDescription>
+              Help us contact you with case updates.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="sa-first">First name</Label>
-                <Input id="sa-first" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                <Input
+                  id="sa-first"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="sa-last">Last name</Label>
-                <Input id="sa-last" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                <Input
+                  id="sa-last"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
               </div>
             </div>
             <div>
               <Label htmlFor="sa-email">Email</Label>
-              <Input id="sa-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input
+                id="sa-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
             <div>
               <Label htmlFor="sa-phone">Phone</Label>
-              <Input id="sa-phone" placeholder="(555) 555-5555" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Input
+                id="sa-phone"
+                placeholder="(555) 555-5555"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
             </div>
-            {error && <div className="text-sm text-muted-foreground">{error}</div>}
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="sa-dob">Date of Birth</Label>
+                <DatePicker
+                  id="sa-dob"
+                  value={dob}
+                  onChange={setDob}
+                  placeholder="Birth date"
+                />
+              </div>
+              <div>
+                <Label htmlFor="sa-ssn">Social Security Number</Label>
+                <Input
+                  id="sa-ssn"
+                  placeholder="XXX-XX-XXXX"
+                  value={ssn}
+                  onChange={(e) => setSsn(e.target.value)}
+                />
+              </div>
+            </div>
+            {error && (
+              <div className="text-sm text-muted-foreground">{error}</div>
+            )}
             <div className="flex justify-end gap-2 pt-2">
-              <Button onClick={submit} disabled={disabled}>{saving ? "Saving..." : "Save"}</Button>
+              <Button onClick={submit} disabled={disabled}>
+                {saving ? "Saving..." : "Save"}
+              </Button>
             </div>
           </CardContent>
         </Card>
