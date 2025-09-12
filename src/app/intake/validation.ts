@@ -76,12 +76,35 @@ export const dateOfBirthSchema = z.object({
     }),
 });
 
-export const addressSchema = z.object({
-  address: z
+// Address split into 4 fields: street, city, state, zip
+export const addressStreetSchema = z.object({
+  addressStreet: z
     .string()
-    .min(1, "Address is required")
-    .max(200, "Address must be less than 200 characters")
-    .regex(/^[^<>{}[\]\\]*$/, "Address contains invalid characters"),
+    .min(1, "Street address is required")
+    .max(200, "Street address must be less than 200 characters")
+    .regex(/^[^<>{}[\]\\]*$/, "Street contains invalid characters"),
+});
+
+export const addressCitySchema = z.object({
+  addressCity: z
+    .string()
+    .min(1, "City is required")
+    .max(100, "City must be less than 100 characters")
+    .regex(/^[a-zA-Z\s.'-]+$/, "City contains invalid characters"),
+});
+
+export const addressStateSchema = z.object({
+  addressState: z
+    .string()
+    .min(2, "State is required")
+    .max(100, "State must be less than 100 characters"),
+});
+
+export const addressZipSchema = z.object({
+  addressZip: z
+    .string()
+    .min(1, "ZIP code is required")
+    .regex(/^\d{5}(-\d{4})?$/, "Enter a valid US ZIP code"),
 });
 
 // Combined schema for all personal info
@@ -90,12 +113,18 @@ export const personalInfoSchema = z.object({
   ...emailSchema.shape,
   ...phoneSchema.shape,
   ...dateOfBirthSchema.shape,
-  ...addressSchema.shape,
+  ...addressStreetSchema.shape,
+  ...addressCitySchema.shape,
+  ...addressStateSchema.shape,
+  ...addressZipSchema.shape,
 });
 
 export type FullNameFormData = z.infer<typeof fullNameSchema>;
 export type EmailFormData = z.infer<typeof emailSchema>;
 export type PhoneFormData = z.infer<typeof phoneSchema>;
 export type DateOfBirthFormData = z.infer<typeof dateOfBirthSchema>;
-export type AddressFormData = z.infer<typeof addressSchema>;
+export type AddressStreetFormData = z.infer<typeof addressStreetSchema>;
+export type AddressCityFormData = z.infer<typeof addressCitySchema>;
+export type AddressStateFormData = z.infer<typeof addressStateSchema>;
+export type AddressZipFormData = z.infer<typeof addressZipSchema>;
 export type PersonalInfoFormData = z.infer<typeof personalInfoSchema>;

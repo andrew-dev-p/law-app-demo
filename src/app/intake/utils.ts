@@ -4,7 +4,10 @@ import {
   emailSchema,
   phoneSchema,
   dateOfBirthSchema,
-  addressSchema,
+  addressStreetSchema,
+  addressCitySchema,
+  addressStateSchema,
+  addressZipSchema,
 } from "./validation";
 
 // Utility function to split full name into first and last name
@@ -30,7 +33,10 @@ export const STEP_TITLES = [
   "What's the best email to reach you?",
   "What's the best phone number to reach you?",
   "What is your date of birth?",
-  "What is your current address?",
+  "What is your street address?",
+  "What city do you live in?",
+  "What state do you live in?",
+  "What is your ZIP code?",
   "Tell us about the incident (voice)",
   "Tell us about medical and referrals (voice)",
   "Upload driver's license",
@@ -63,8 +69,17 @@ export const getValidationList = (state: IntakeState) => {
     return dateOfBirthSchema.safeParse({ dob: state.personal.dob }).success;
   };
 
-  const validateAddress = () => {
-    return addressSchema.safeParse({ address: state.personal.address }).success;
+  const validateAddressStreet = () => {
+    return addressStreetSchema.safeParse({ addressStreet: state.personal.addressStreet }).success;
+  };
+  const validateAddressCity = () => {
+    return addressCitySchema.safeParse({ addressCity: state.personal.addressCity }).success;
+  };
+  const validateAddressState = () => {
+    return addressStateSchema.safeParse({ addressState: state.personal.addressState }).success;
+  };
+  const validateAddressZip = () => {
+    return addressZipSchema.safeParse({ addressZip: state.personal.addressZip }).success;
   };
 
   const docHas = (cat: "license" | "insurance" | "evidence") =>
@@ -80,24 +95,27 @@ export const getValidationList = (state: IntakeState) => {
     validateEmail(), // Step 1: Email address (valid email format)
     validatePhone(), // Step 2: Phone number (US format validation)
     validateDateOfBirth(), // Step 3: Date of birth (18-120 years old)
-    validateAddress(), // Step 4: Current address
+    validateAddressStreet(), // Step 4: Street
+    validateAddressCity(), // Step 5: City
+    validateAddressState(), // Step 6: State
+    validateAddressZip(), // Step 7: ZIP
 
     // Incident & Medical Information Section
-    Boolean(state.incident.transcript && state.incident.transcript.trim()), // Step 5: Incident details voice recording
-    Boolean(state.medical.transcript && state.medical.transcript.trim()), // Step 6: Medical/referral voice recording
+    Boolean(state.incident.transcript && state.incident.transcript.trim()), // Step 8: Incident details voice recording
+    Boolean(state.medical.transcript && state.medical.transcript.trim()), // Step 9: Medical/referral voice recording
 
     // Document Upload Section
-    docHas("license"), // Step 7: Driver's license upload
-    docHas("insurance"), // Step 8: Insurance cards upload
-    docHas("evidence"), // Step 9: Accident/injury photos upload
+    docHas("license"), // Step 10: Driver's license upload
+    docHas("insurance"), // Step 11: Insurance cards upload
+    docHas("evidence"), // Step 12: Accident/injury photos upload
 
     // Legal Agreements Section
-    agreeOk("hipaa"), // Step 10: HIPAA release agreement signed
-    agreeOk("representation"), // Step 11: Legal representation agreement signed
-    agreeOk("fee"), // Step 12: Contingency fee agreement signed
+    agreeOk("hipaa"), // Step 13: HIPAA release agreement signed
+    agreeOk("representation"), // Step 14: Legal representation agreement signed
+    agreeOk("fee"), // Step 15: Contingency fee agreement signed
 
     // Final Review & Submission
-    Boolean(state.agreed), // Step 13: Final agreement to submit intake
+    Boolean(state.agreed), // Step 16: Final agreement to submit intake
   ];
 };
 
@@ -107,16 +125,16 @@ export const getCurrentStepValidation = (state: IntakeState, step: number) => {
 };
 
 // Constants for questionnaire flow
-export const TOTAL_QUESTIONS = 14;
-export const SECTION_STARTS = [0, 5, 6, 7, 10, 13];
+export const TOTAL_QUESTIONS = 17;
+export const SECTION_STARTS = [0, 8, 9, 10, 13, 16];
 
 // Helper functions for step state computation
 export const getSectionFromQuestion = (q: number) => {
-  if (q >= 13) return 5;
-  if (q >= 10) return 4;
-  if (q >= 7) return 3;
-  if (q >= 6) return 2;
-  if (q >= 5) return 1;
+  if (q >= 16) return 5;
+  if (q >= 13) return 4;
+  if (q >= 10) return 3;
+  if (q >= 9) return 2;
+  if (q >= 8) return 1;
   return 0;
 };
 
@@ -137,18 +155,18 @@ export const getCompletedSteps = (
 
   // Check each section's completion
   const sections = [
-    // Personal section (steps 0-4)
-    { start: 0, end: 4, sectionIndex: 0 },
-    // Incident section (step 5)
-    { start: 5, end: 5, sectionIndex: 1 },
-    // Medical section (step 6)
-    { start: 6, end: 6, sectionIndex: 2 },
-    // Uploads section (steps 7-9)
-    { start: 7, end: 9, sectionIndex: 3 },
-    // Agreements section (steps 10-12)
-    { start: 10, end: 12, sectionIndex: 4 },
-    // Review section (step 13)
-    { start: 13, end: 13, sectionIndex: 5 },
+    // Personal section (steps 0-7)
+    { start: 0, end: 7, sectionIndex: 0 },
+    // Incident section (step 8)
+    { start: 8, end: 8, sectionIndex: 1 },
+    // Medical section (step 9)
+    { start: 9, end: 9, sectionIndex: 2 },
+    // Uploads section (steps 10-12)
+    { start: 10, end: 12, sectionIndex: 3 },
+    // Agreements section (steps 13-15)
+    { start: 13, end: 15, sectionIndex: 4 },
+    // Review section (step 16)
+    { start: 16, end: 16, sectionIndex: 5 },
   ];
 
   sections.forEach(({ start, end, sectionIndex }) => {
@@ -177,18 +195,18 @@ export const checkSectionCompletion = (
 
   // Check each section's completion
   const sections = [
-    // Personal section (steps 0-4)
-    { start: 0, end: 4, sectionIndex: 0 },
-    // Incident section (step 5)
-    { start: 5, end: 5, sectionIndex: 1 },
-    // Medical section (step 6)
-    { start: 6, end: 6, sectionIndex: 2 },
-    // Uploads section (steps 7-9)
-    { start: 7, end: 9, sectionIndex: 3 },
-    // Agreements section (steps 10-12)
-    { start: 10, end: 12, sectionIndex: 4 },
-    // Review section (step 13)
-    { start: 13, end: 13, sectionIndex: 5 },
+    // Personal section (steps 0-7)
+    { start: 0, end: 7, sectionIndex: 0 },
+    // Incident section (step 8)
+    { start: 8, end: 8, sectionIndex: 1 },
+    // Medical section (step 9)
+    { start: 9, end: 9, sectionIndex: 2 },
+    // Uploads section (steps 10-12)
+    { start: 10, end: 12, sectionIndex: 3 },
+    // Agreements section (steps 13-15)
+    { start: 13, end: 15, sectionIndex: 4 },
+    // Review section (step 16)
+    { start: 16, end: 16, sectionIndex: 5 },
   ];
 
   for (const { start, end, sectionIndex } of sections) {

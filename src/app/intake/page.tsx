@@ -21,7 +21,7 @@ import {
   cancelIncidentReminders,
   ensureIncidentRemindersScheduled,
 } from "@/lib/reminders";
-import { AddressStep } from "./_components/address-step";
+import { CityStep, StateStep, StreetStep, ZipStep } from "./_components/address-step";
 import {
   AgreementSection,
   AgreementsForm,
@@ -274,19 +274,43 @@ export default function IntakePage() {
           }
         />
       ),
-      // Step 4: Address
+      // Step 4: Address - Street
       () => (
-        <AddressStep
-          address={state.personal.address}
+        <StreetStep
+          value={state.personal.addressStreet}
           onChange={(data) =>
-            setState((s) => ({
-              ...s,
-              personal: { ...s.personal, ...data },
-            }))
+            setState((s) => ({ ...s, personal: { ...s.personal, ...data } }))
           }
         />
       ),
-      // Step 5: Incident voice
+      // Step 5: Address - City
+      () => (
+        <CityStep
+          value={state.personal.addressCity}
+          onChange={(data) =>
+            setState((s) => ({ ...s, personal: { ...s.personal, ...data } }))
+          }
+        />
+      ),
+      // Step 6: Address - State
+      () => (
+        <StateStep
+          value={state.personal.addressState}
+          onChange={(data) =>
+            setState((s) => ({ ...s, personal: { ...s.personal, ...data } }))
+          }
+        />
+      ),
+      // Step 7: Address - ZIP
+      () => (
+        <ZipStep
+          value={state.personal.addressZip}
+          onChange={(data) =>
+            setState((s) => ({ ...s, personal: { ...s.personal, ...data } }))
+          }
+        />
+      ),
+      // Step 8: Incident voice
       () => (
         <IncidentVoice
           transcript={state.incident.transcript}
@@ -298,7 +322,7 @@ export default function IntakePage() {
           }
         />
       ),
-      // Step 6: Medical voice
+      // Step 9: Medical voice
       () => (
         <MedicalVoice
           transcript={state.medical.transcript}
@@ -310,7 +334,7 @@ export default function IntakePage() {
           }
         />
       ),
-      // Step 7: Upload driver's license
+      // Step 10: Upload driver's license
       () => (
         <UploadsForm
           section={UploadSection.License}
@@ -319,7 +343,7 @@ export default function IntakePage() {
           onRemove={removeUpload}
         />
       ),
-      // Step 8: Upload insurance cards
+      // Step 11: Upload insurance cards
       () => (
         <UploadsForm
           section={UploadSection.Insurance}
@@ -328,7 +352,7 @@ export default function IntakePage() {
           onRemove={removeUpload}
         />
       ),
-      // Step 9: Upload accident/injury photos
+      // Step 12: Upload accident/injury photos
       () => (
         <UploadsForm
           section={UploadSection.Evidence}
@@ -337,7 +361,7 @@ export default function IntakePage() {
           onRemove={removeUpload}
         />
       ),
-      // Step 10: Sign HIPAA release
+      // Step 13: Sign HIPAA release
       () => (
         <AgreementsForm
           section={AgreementSection.Hipaa}
@@ -345,7 +369,7 @@ export default function IntakePage() {
           onChange={(agreements) => setState((s) => ({ ...s, agreements }))}
         />
       ),
-      // Step 11: Sign representation agreement
+      // Step 14: Sign representation agreement
       () => (
         <AgreementsForm
           section={AgreementSection.Representation}
@@ -353,7 +377,7 @@ export default function IntakePage() {
           onChange={(agreements) => setState((s) => ({ ...s, agreements }))}
         />
       ),
-      // Step 12: Sign contingency fee agreement
+      // Step 15: Sign contingency fee agreement
       () => (
         <AgreementsForm
           section={AgreementSection.Fee}
@@ -361,7 +385,7 @@ export default function IntakePage() {
           onChange={(agreements) => setState((s) => ({ ...s, agreements }))}
         />
       ),
-      // Step 13: Review & Submit
+      // Step 16: Review & Submit
       () => (
         <ReviewSection
           state={state}
@@ -379,9 +403,9 @@ export default function IntakePage() {
     setTimeout(() => setShowConfetti(false), 5000);
   };
 
-  // Schedule reminders if incident voice not completed (question 5)
+  // Schedule reminders if incident voice not completed (question 8)
   useEffect(() => {
-    if (step === 5 || (step === 6 && !state.incident.transcript?.trim())) {
+    if (step === 8 || (step === 9 && !state.incident.transcript?.trim())) {
       ensureIncidentRemindersScheduled();
     }
   }, [step, state.incident.transcript]);

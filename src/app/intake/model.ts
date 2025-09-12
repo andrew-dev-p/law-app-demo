@@ -4,7 +4,10 @@ export type PersonalInfo = {
   email: string;
   phone: string;
   dob: string;
-  address: string;
+  addressStreet: string;
+  addressCity: string;
+  addressState: string;
+  addressZip: string;
 };
 
 export type IncidentInfo = {
@@ -50,7 +53,10 @@ export const defaultState: IntakeState = {
     email: "",
     phone: "",
     dob: "",
-    address: "",
+    addressStreet: "",
+    addressCity: "",
+    addressState: "",
+    addressZip: "",
   },
   incident: {
     transcript: "",
