@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { SignedIn, useUser } from "@clerk/nextjs";
 import {
   Card,
@@ -161,4 +162,22 @@ export function SetupAccountGate() {
       </div>
     </SignedIn>
   );
+}
+
+export function FirstLoginRedirect() {
+  const { isLoaded, user } = useUser();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (!isLoaded || !user) return;
+    const alreadyCompleted = Boolean(user?.unsafeMetadata?.setupCompleted);
+    if (!alreadyCompleted) {
+      if (!pathname.startsWith("/intake")) {
+        router.replace("/intake");
+      }
+    }
+  }, [isLoaded, user, pathname, router]);
+
+  return null;
 }

@@ -4,7 +4,7 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import { AppHeader } from "@/components/app/header";
-import { SetupAccountGate } from "@/components/app/setup-account-gate";
+import { FirstLoginRedirect } from "@/components/app/setup-account-gate";
 
 const mulish = Mulish({
   variable: "--font-mulish",
@@ -35,7 +35,7 @@ export default function RootLayout({
       >
         <ClerkProvider>
           <AppHeader />
-          <SetupAccountGate />
+          <FirstLoginRedirect />
           <main className="min-h-[calc(100vh-57px)]">{children}</main>
           <Toaster position="bottom-center" richColors closeButton />
         </ClerkProvider>

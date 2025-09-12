@@ -37,7 +37,7 @@ export function ReviewSection({ state, onAgreedChange }: ReviewSectionProps) {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.15, duration: 0.2 }}
           >
-            Contact
+            Personal
           </motion.div>
           <motion.div
             className="text-sm text-muted-foreground"
@@ -46,6 +46,24 @@ export function ReviewSection({ state, onAgreedChange }: ReviewSectionProps) {
             transition={{ delay: 0.2, duration: 0.2 }}
           >
             {state.personal.firstName} {state.personal.lastName}
+          </motion.div>
+          <motion.div
+            className="text-sm text-muted-foreground"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.22, duration: 0.2 }}
+          >
+            DOB: {state.personal.dob || "-"}
+          </motion.div>
+          <motion.div
+            className="text-sm text-muted-foreground"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.24, duration: 0.2 }}
+          >
+            Address: {[state.personal.addressStreet, state.personal.addressCity, state.personal.addressState, state.personal.addressZip].filter(Boolean).join(
+              ", "
+            ) || "-"}
           </motion.div>
           <motion.div
             className="text-sm text-muted-foreground"
@@ -61,7 +79,9 @@ export function ReviewSection({ state, onAgreedChange }: ReviewSectionProps) {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.2 }}
           >
-            {state.personal.phone}
+            Mobile: {state.personal.phoneMobile || "-"}
+            {state.personal.phoneHome ? `, Home: ${state.personal.phoneHome}` : ""}
+            {state.personal.phoneWork ? `, Work: ${state.personal.phoneWork}` : ""}
           </motion.div>
         </motion.div>
         <motion.div
@@ -83,7 +103,27 @@ export function ReviewSection({ state, onAgreedChange }: ReviewSectionProps) {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.25, duration: 0.2 }}
           >
-            {state.incident.transcript?.trim() || "-"}
+            {`Date: ${state.incident.date || "-"}; State: ${state.incident.state || "-"}; Type: ${state.incident.accidentType || "-"}; Role: ${state.incident.role || "-"}`}
+          </motion.div>
+          <motion.div
+            className="text-sm text-muted-foreground"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.28, duration: 0.2 }}
+          >
+            {state.incident.emsAtScene === true
+              ? `EMS at scene; Hospital: ${state.incident.hospitalTransportedTo || "-"}`
+              : state.incident.emsAtScene === false
+              ? "No EMS at scene"
+              : "EMS: -"}
+          </motion.div>
+          <motion.div
+            className="text-sm text-muted-foreground"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.31, duration: 0.2 }}
+          >
+            Summary: {state.incident.transcript?.trim() || "-"}
           </motion.div>
         </motion.div>
       </motion.div>
@@ -111,7 +151,15 @@ export function ReviewSection({ state, onAgreedChange }: ReviewSectionProps) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.25, duration: 0.2 }}
         >
-          {state.medical.transcript?.trim() || "-"}
+          Injury: {state.medical.transcript?.trim() || "-"}
+        </motion.div>
+        <motion.div
+          className="text-sm text-muted-foreground"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.2 }}
+        >
+          Previous: {state.medical.previousInjuryTranscript?.trim() || "-"}
         </motion.div>
       </motion.div>
 

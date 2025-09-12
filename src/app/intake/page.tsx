@@ -12,16 +12,20 @@ import {
 } from "@/components/ui/card";
 import { useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
-import { Trophy } from "lucide-react";
+import { Trophy, CheckCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Confetti from "react-confetti";
 import { toast } from "sonner";
 
 import {
   cancelIncidentReminders,
   ensureIncidentRemindersScheduled,
 } from "@/lib/reminders";
-import { CityStep, StateStep, StreetStep, ZipStep } from "./_components/address-step";
+import {
+  CityStep,
+  StateStep,
+  StreetStep,
+  ZipStep,
+} from "./_components/address-step";
 import {
   AgreementSection,
   AgreementsForm,
@@ -29,9 +33,39 @@ import {
 import { DateOfBirthStep } from "./_components/date-of-birth-step";
 import { EmailStep } from "./_components/email-step";
 import { FullNameStep } from "./_components/full-name-step";
-import { IncidentVoice } from "./_components/incident-voice";
-import { MedicalVoice } from "./_components/medical-voice";
-import { PhoneStep } from "./_components/phone-step";
+import { PhonesStep } from "./_components/phones-step";
+import { SSNStep } from "./_components/ssn-step";
+import { DriversLicenseStep } from "./_components/drivers-license-step";
+import { FamilyStatusStep } from "./_components/family-status-step";
+import { ChildrenStep } from "./_components/children-step";
+import {
+  IncidentDateStep,
+  IncidentEmsHospitalStep,
+  IncidentLocationPoliceStep,
+  IncidentStateStep,
+  IncidentTypeRolePolicyStep,
+  IncidentVoiceTicketsStep,
+} from "./_components/incident-details-steps";
+import {
+  MedicalInjuryVoiceStep,
+  MedicalPreviousInjuryVoiceStep,
+  MedicalProvidersStep,
+} from "./_components/medical-details-steps";
+import {
+  InsuranceCompaniesStep,
+  LostIncomeStep,
+  HouseholdAndUMStep,
+  OtherDriverInsurerStep,
+} from "./_components/insurance-employment-steps";
+import {
+  BillsStep,
+  OtherCostsStep,
+  PropertyDamageStep,
+} from "./_components/damages-steps";
+import {
+  AttorneyStep,
+  WitnessesStep,
+} from "./_components/witnesses-attorneys-steps";
 import { ReviewSection } from "./_components/review-section";
 import { StepHeader } from "./_components/step-header";
 import { UploadSection, UploadsForm } from "./_components/uploads-form";
@@ -59,83 +93,90 @@ export default function IntakePage() {
   const { user } = useUser();
 
   const [step, setStep] = useState<number>(0);
-  const [showConfetti, setShowConfetti] = useState<boolean>(false);
 
   // TODO: Remove localStorage for demo
-  const [state, setState] = useState<IntakeState>(() => {
-    if (typeof window !== "undefined") {
+  const [state, setState] = useState<IntakeState>(() => defaultState);
+
+  // Load from localStorage on mount to avoid SSR/CSR mismatch
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
       const raw = window.localStorage.getItem("intake-state");
       const rawStep = window.localStorage.getItem("intake-step");
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<IntakeState>;
+        const parsedAgreements = parsed.agreements as
+          | Partial<IntakeState["agreements"]>
+          | undefined;
+        const restored: IntakeState = {
+          ...defaultState,
+          ...parsed,
+          personal: { ...defaultState.personal, ...(parsed.personal || {}) },
+          incident: { ...defaultState.incident, ...(parsed.incident || {}) },
+          medical: { ...defaultState.medical, ...(parsed.medical || {}) },
+          agreements: {
+            ...defaultState.agreements,
+            ...(parsedAgreements || {}),
+            hipaa: {
+              ...defaultState.agreements.hipaa,
+              ...(parsedAgreements?.hipaa || {}),
+            },
+            representation: {
+              ...defaultState.agreements.representation,
+              ...(parsedAgreements?.representation || {}),
+            },
+            fee: {
+              ...defaultState.agreements.fee,
+              ...(parsedAgreements?.fee || {}),
+            },
+          },
+          uploads: Array.isArray(parsed.uploads)
+            ? (parsed.uploads as UploadItem[])
+            : [],
+          agreed: Boolean(parsed.agreed),
+        } as IntakeState;
+        setState(restored);
+      }
       if (rawStep) {
         const n = parseInt(rawStep, 10);
         if (!Number.isNaN(n)) setStep(n);
       }
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw) as Partial<IntakeState>;
-          return {
-            ...defaultState,
-            ...parsed,
-            personal: { ...defaultState.personal, ...(parsed.personal || {}) },
-            incident: { ...defaultState.incident, ...(parsed.incident || {}) },
-            medical: { ...defaultState.medical, ...(parsed.medical || {}) },
-            agreements: {
-              ...defaultState.agreements,
-              ...(parsed as any).agreements,
-              hipaa: {
-                ...defaultState.agreements.hipaa,
-                ...((parsed as any).agreements?.hipaa || {}),
-              },
-              representation: {
-                ...defaultState.agreements.representation,
-                ...((parsed as any).agreements?.representation || {}),
-              },
-              fee: {
-                ...defaultState.agreements.fee,
-                ...((parsed as any).agreements?.fee || {}),
-              },
-            },
-            uploads: Array.isArray(parsed.uploads)
-              ? (parsed.uploads as UploadItem[])
-              : [],
-            agreed: Boolean((parsed as any).agreed),
-          } as IntakeState;
-        } catch {}
-      }
-    }
-    return defaultState;
-  });
+    } catch {}
+  }, []);
 
   // TODO: Remove localStorage for demo
   // Prefill from Clerk user/metadata (only fill empty fields)
   useEffect(() => {
     if (!user) return;
-    const meta = (user.unsafeMetadata as any) || {};
+    const meta = (user.unsafeMetadata ?? {}) as Record<string, unknown>;
+    const asString = (v: unknown): string | undefined =>
+      typeof v === "string" ? v : undefined;
     setState((s) => {
       const next = {
         firstName:
           s.personal.firstName ||
-          (meta.contactFirstName as string) ||
+          asString(meta.contactFirstName) ||
           user.firstName ||
           "",
         lastName:
           s.personal.lastName ||
-          (meta.contactLastName as string) ||
+          asString(meta.contactLastName) ||
           user.lastName ||
           "",
         email:
           s.personal.email ||
-          (meta.contactEmail as string) ||
+          asString(meta.contactEmail) ||
           user.primaryEmailAddress?.emailAddress ||
           "",
-        phone: s.personal.phone || (meta.contactPhone as string) || "",
-        dob: s.personal.dob || (meta.contactDob as string) || "",
+        phoneMobile:
+          s.personal.phoneMobile || asString(meta.contactPhone) || "",
+        dob: s.personal.dob || asString(meta.contactDob) || "",
       };
       const unchanged =
         next.firstName === s.personal.firstName &&
         next.lastName === s.personal.lastName &&
         next.email === s.personal.email &&
-        next.phone === s.personal.phone;
+        next.phoneMobile === s.personal.phoneMobile;
       if (unchanged) return s;
       return { ...s, personal: { ...s.personal, ...next } };
     });
@@ -184,8 +225,12 @@ export default function IntakePage() {
     if (completedSectionIndex !== null) {
       const sectionNames = [
         "Personal Info",
+        "Family & Status",
         "Incident Details",
-        "Medical Info",
+        "Medical Details",
+        "Insurance & Employment",
+        "Damages & Costs",
+        "Witnesses & Attorneys",
         "Documents",
         "Agreements",
         "Review",
@@ -225,56 +270,44 @@ export default function IntakePage() {
   // Array of render functions for each step to avoid huge switch statement
   const stepRenderers = useMemo(
     () => [
-      // Step 0: Full name
+      // 0: Full name
       () => (
         <FullNameStep
           firstName={state.personal.firstName}
           lastName={state.personal.lastName}
           onChange={(data) =>
-            setState((s) => ({
-              ...s,
-              personal: { ...s.personal, ...data },
-            }))
+            setState((s) => ({ ...s, personal: { ...s.personal, ...data } }))
           }
         />
       ),
-      // Step 1: Email
-      () => (
-        <EmailStep
-          email={state.personal.email}
-          onChange={(data) =>
-            setState((s) => ({
-              ...s,
-              personal: { ...s.personal, ...data },
-            }))
-          }
-        />
-      ),
-      // Step 2: Phone
-      () => (
-        <PhoneStep
-          phone={state.personal.phone}
-          onChange={(data) =>
-            setState((s) => ({
-              ...s,
-              personal: { ...s.personal, ...data },
-            }))
-          }
-        />
-      ),
-      // Step 3: Date of birth
+      // 1: DOB
       () => (
         <DateOfBirthStep
           dob={state.personal.dob}
           onChange={(data) =>
-            setState((s) => ({
-              ...s,
-              personal: { ...s.personal, ...data },
-            }))
+            setState((s) => ({ ...s, personal: { ...s.personal, ...data } }))
           }
         />
       ),
-      // Step 4: Address - Street
+      // 2: SSN
+      () => (
+        <SSNStep
+          ssn={state.personal.ssn}
+          onChange={(data) =>
+            setState((s) => ({ ...s, personal: { ...s.personal, ...data } }))
+          }
+        />
+      ),
+      // 3: Driver�s License
+      () => (
+        <DriversLicenseStep
+          driversLicense={state.personal.driversLicense}
+          onChange={(data) =>
+            setState((s) => ({ ...s, personal: { ...s.personal, ...data } }))
+          }
+        />
+      ),
+      // 4: Street
       () => (
         <StreetStep
           value={state.personal.addressStreet}
@@ -283,7 +316,7 @@ export default function IntakePage() {
           }
         />
       ),
-      // Step 5: Address - City
+      // 5: City
       () => (
         <CityStep
           value={state.personal.addressCity}
@@ -292,7 +325,7 @@ export default function IntakePage() {
           }
         />
       ),
-      // Step 6: Address - State
+      // 6: State
       () => (
         <StateStep
           value={state.personal.addressState}
@@ -301,7 +334,7 @@ export default function IntakePage() {
           }
         />
       ),
-      // Step 7: Address - ZIP
+      // 7: ZIP
       () => (
         <ZipStep
           value={state.personal.addressZip}
@@ -310,9 +343,119 @@ export default function IntakePage() {
           }
         />
       ),
-      // Step 8: Incident voice
+      // 8: Phones
       () => (
-        <IncidentVoice
+        <PhonesStep
+          value={{
+            phoneMobile: state.personal.phoneMobile,
+            phoneHome: state.personal.phoneHome,
+            phoneWork: state.personal.phoneWork,
+          }}
+          onChange={(data) =>
+            setState((s) => ({ ...s, personal: { ...s.personal, ...data } }))
+          }
+        />
+      ),
+      // 9: Email
+      () => (
+        <EmailStep
+          email={state.personal.email}
+          onChange={(data) =>
+            setState((s) => ({ ...s, personal: { ...s.personal, ...data } }))
+          }
+        />
+      ),
+      // 10: Marital status
+      () => (
+        <FamilyStatusStep
+          value={{
+            maritalStatus: state.family.maritalStatus,
+            spouseName: state.family.spouseName,
+            spousePhone: state.family.spousePhone,
+          }}
+          onChange={(v) =>
+            setState((s) => ({ ...s, family: { ...s.family, ...v } }))
+          }
+        />
+      ),
+      // 11: Children & companions
+      () => (
+        <ChildrenStep
+          value={{
+            numberOfChildren: state.family.numberOfChildren,
+            childrenAges: state.family.childrenAges,
+            minorCompanionsNames: state.family.minorCompanionsNames,
+          }}
+          onChange={(v) =>
+            setState((s) => ({ ...s, family: { ...s.family, ...v } }))
+          }
+        />
+      ),
+      // 12: Incident Date
+      () => (
+        <IncidentDateStep
+          value={state.incident.date}
+          onChange={(v) =>
+            setState((s) => ({ ...s, incident: { ...s.incident, ...v } }))
+          }
+        />
+      ),
+      // 13: Incident State
+      () => (
+        <IncidentStateStep
+          value={state.incident.state}
+          onChange={(v) =>
+            setState((s) => ({ ...s, incident: { ...s.incident, ...v } }))
+          }
+        />
+      ),
+      // 14: Location & Police
+      () => (
+        <IncidentLocationPoliceStep
+          value={{
+            location: state.incident.location,
+            policeDepartment: state.incident.policeDepartment,
+            policeReportNumber: state.incident.policeReportNumber,
+          }}
+          onChange={(v) =>
+            setState((s) => ({ ...s, incident: { ...s.incident, ...v } }))
+          }
+        />
+      ),
+      // 15: Accident Type & Role (+ own policy)
+      () => (
+        <IncidentTypeRolePolicyStep
+          value={{
+            accidentType: state.incident.accidentType,
+            role: state.incident.role,
+            hasOwnPolicy: state.incident.hasOwnPolicy,
+          }}
+          onChange={(v) =>
+            setState((s) => ({ ...s, incident: { ...s.incident, ...v } }))
+          }
+        />
+      ),
+      // 16: EMS & Hospital
+      () => (
+        <IncidentEmsHospitalStep
+          value={{
+            emsAtScene: state.incident.emsAtScene,
+            hospitalTransportedTo: state.incident.hospitalTransportedTo,
+          }}
+          onChange={(v) =>
+            setState((s) => ({ ...s, incident: { ...s.incident, ...v } }))
+          }
+        />
+      ),
+      // 17: Incident Voice + Tickets
+      () => (
+        <IncidentVoiceTicketsStep
+          value={{
+            otherDriverTicket: state.incident.otherDriverTicket,
+            otherDriverTicketWhyNot: state.incident.otherDriverTicketWhyNot,
+            clientTicket: state.incident.clientTicket,
+            clientTicketWhy: state.incident.clientTicketWhy,
+          }}
           transcript={state.incident.transcript}
           onSave={(t) =>
             setState((s) => ({
@@ -320,11 +463,14 @@ export default function IntakePage() {
               incident: { ...s.incident, transcript: t },
             }))
           }
+          onChange={(v) =>
+            setState((s) => ({ ...s, incident: { ...s.incident, ...v } }))
+          }
         />
       ),
-      // Step 9: Medical voice
+      // 18: Medical Injury Voice
       () => (
-        <MedicalVoice
+        <MedicalInjuryVoiceStep
           transcript={state.medical.transcript}
           onSave={(t) =>
             setState((s) => ({
@@ -334,7 +480,144 @@ export default function IntakePage() {
           }
         />
       ),
-      // Step 10: Upload driver's license
+      // 19: Previous Injury Voice
+      () => (
+        <MedicalPreviousInjuryVoiceStep
+          previousTranscript={state.medical.previousInjuryTranscript}
+          onSave={(t) =>
+            setState((s) => ({
+              ...s,
+              medical: { ...s.medical, previousInjuryTranscript: t },
+            }))
+          }
+        />
+      ),
+      // 20: Providers
+      () => (
+        <MedicalProvidersStep
+          value={state.medical.providers}
+          onChange={(providers) =>
+            setState((s) => ({ ...s, medical: { ...s.medical, providers } }))
+          }
+        />
+      ),
+      // 21: Insurance companies
+      () => (
+        <InsuranceCompaniesStep
+          value={state.insuranceEmployment.insuranceCompanies}
+          onChange={(insuranceCompanies) =>
+            setState((s) => ({
+              ...s,
+              insuranceEmployment: {
+                ...s.insuranceEmployment,
+                insuranceCompanies,
+              },
+            }))
+          }
+        />
+      ),
+      // 22: Other driver insurer
+      () => (
+        <OtherDriverInsurerStep
+          value={state.insuranceEmployment.otherDriverInsuranceCompany}
+          onChange={(v) =>
+            setState((s) => ({
+              ...s,
+              insuranceEmployment: { ...s.insuranceEmployment, ...v },
+            }))
+          }
+        />
+      ),
+      // 23: Household policies + UM claim
+      () => (
+        <HouseholdAndUMStep
+          value={{
+            householdPolicies: state.insuranceEmployment.householdPolicies,
+            permissionOpenUmClaim:
+              state.insuranceEmployment.permissionOpenUmClaim,
+            umInsuranceCompany: state.insuranceEmployment.umInsuranceCompany,
+          }}
+          onChange={(v) =>
+            setState((s) => ({
+              ...s,
+              insuranceEmployment: { ...s.insuranceEmployment, ...v },
+            }))
+          }
+        />
+      ),
+      // 24: Lost income
+      () => (
+        <LostIncomeStep
+          value={{
+            lostIncomeOrMissedWork:
+              state.insuranceEmployment.lostIncomeOrMissedWork,
+            employerPhone: state.insuranceEmployment.employerPhone,
+            employerAddress: state.insuranceEmployment.employerAddress,
+          }}
+          onChange={(v) =>
+            setState((s) => ({
+              ...s,
+              insuranceEmployment: { ...s.insuranceEmployment, ...v },
+            }))
+          }
+        />
+      ),
+      // 25: Property damage
+      () => (
+        <PropertyDamageStep
+          value={state.damages}
+          onChange={(v) =>
+            setState((s) => ({ ...s, damages: { ...s.damages, ...v } }))
+          }
+        />
+      ),
+      // 26: Bills
+      () => (
+        <BillsStep
+          value={state.damages}
+          onChange={(v) =>
+            setState((s) => ({ ...s, damages: { ...s.damages, ...v } }))
+          }
+        />
+      ),
+      // 27: Other costs
+      () => (
+        <OtherCostsStep
+          value={state.damages}
+          onChange={(v) =>
+            setState((s) => ({ ...s, damages: { ...s.damages, ...v } }))
+          }
+        />
+      ),
+      // 28: Witnesses
+      () => (
+        <WitnessesStep
+          value={state.witnessesAttorneys.witnesses}
+          onChange={(v) =>
+            setState((s) => ({
+              ...s,
+              witnessesAttorneys: { ...s.witnessesAttorneys, ...v },
+            }))
+          }
+        />
+      ),
+      // 29: Attorney
+      () => (
+        <AttorneyStep
+          value={{
+            spokeToAnotherAttorney:
+              state.witnessesAttorneys.spokeToAnotherAttorney,
+            attorneyNameAddress: state.witnessesAttorneys.attorneyNameAddress,
+          }}
+          onChange={(v) =>
+            setState((s) => ({
+              ...s,
+              witnessesAttorneys: { ...s.witnessesAttorneys, ...v },
+            }))
+          }
+        />
+      ),
+      // 30..32: Uploads
       () => (
         <UploadsForm
           section={UploadSection.License}
@@ -343,7 +626,6 @@ export default function IntakePage() {
           onRemove={removeUpload}
         />
       ),
-      // Step 11: Upload insurance cards
       () => (
         <UploadsForm
           section={UploadSection.Insurance}
@@ -352,7 +634,6 @@ export default function IntakePage() {
           onRemove={removeUpload}
         />
       ),
-      // Step 12: Upload accident/injury photos
       () => (
         <UploadsForm
           section={UploadSection.Evidence}
@@ -361,7 +642,7 @@ export default function IntakePage() {
           onRemove={removeUpload}
         />
       ),
-      // Step 13: Sign HIPAA release
+      // 33..35: Agreements
       () => (
         <AgreementsForm
           section={AgreementSection.Hipaa}
@@ -369,7 +650,6 @@ export default function IntakePage() {
           onChange={(agreements) => setState((s) => ({ ...s, agreements }))}
         />
       ),
-      // Step 14: Sign representation agreement
       () => (
         <AgreementsForm
           section={AgreementSection.Representation}
@@ -377,7 +657,6 @@ export default function IntakePage() {
           onChange={(agreements) => setState((s) => ({ ...s, agreements }))}
         />
       ),
-      // Step 15: Sign contingency fee agreement
       () => (
         <AgreementsForm
           section={AgreementSection.Fee}
@@ -385,7 +664,7 @@ export default function IntakePage() {
           onChange={(agreements) => setState((s) => ({ ...s, agreements }))}
         />
       ),
-      // Step 16: Review & Submit
+      // 36: Review & Submit
       () => (
         <ReviewSection
           state={state}
@@ -395,17 +674,19 @@ export default function IntakePage() {
     ],
     [state, setState, onFileUpload, removeUpload]
   );
-
   const submit = () => {
     setStep(TOTAL_QUESTIONS);
-    setShowConfetti(true);
-    // Hide confetti after 5 seconds
-    setTimeout(() => setShowConfetti(false), 5000);
+    toast.success("Intake Submitted", {
+      description: "Thanks! We'll review and follow up shortly.",
+      icon: <CheckCircle className="h-4 w-4" />,
+      duration: 3000,
+      position: "bottom-center",
+    });
   };
 
-  // Schedule reminders if incident voice not completed (question 8)
+  // Schedule reminders if incident voice not completed (question 17)
   useEffect(() => {
-    if (step === 8 || (step === 9 && !state.incident.transcript?.trim())) {
+    if (step === 17 || (step === 18 && !state.incident.transcript?.trim())) {
       ensureIncidentRemindersScheduled();
     }
   }, [step, state.incident.transcript]);
@@ -438,24 +719,6 @@ export default function IntakePage() {
 
   return (
     <div className="w-full p-6 relative">
-      {showConfetti && (
-        <Confetti
-          width={typeof window !== "undefined" ? window.innerWidth : 1000}
-          height={typeof window !== "undefined" ? window.innerHeight : 800}
-          recycle={false}
-          numberOfPieces={150}
-          gravity={0.5}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            pointerEvents: "none",
-            zIndex: 9999,
-          }}
-        />
-      )}
       <BackLink className="mb-3" />
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">Welcome to Injuro</h1>

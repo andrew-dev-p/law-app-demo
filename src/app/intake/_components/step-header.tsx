@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { Check, Circle, Play } from "lucide-react";
+import { Check, Circle } from "lucide-react";
+import { STEP_ICONS } from "../utils";
 
 export interface StepHeaderProps {
   steps: readonly { key: string; title: string }[];
@@ -27,7 +28,7 @@ export function StepHeader({
   return (
     <>
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex-1 overflow-x-auto no-scrollbar">
+        <div className="flex-1 overflow-x-auto custom-scrollbar">
           <div className="flex items-center gap-1.5 whitespace-nowrap snap-x px-1">
             {steps.map((s, i) => {
               const isCompleted = completedSteps.includes(i);
@@ -76,13 +77,17 @@ export function StepHeader({
                     }
                     transition={{ duration: 0.5, delay: 0.2 }}
                   >
-                    {isCompleted ? (
-                      <Check className="h-3 w-3" />
-                    ) : isCurrent ? (
-                      <Circle className="h-3 w-3 animate-pulse" />
-                    ) : (
-                      <Play className="h-3 w-3" />
-                    )}
+                    {(() => {
+                      const IconComponent =
+                        STEP_ICONS[s.key as keyof typeof STEP_ICONS];
+                      return IconComponent ? (
+                        <IconComponent className="h-3 w-3" />
+                      ) : isCompleted ? (
+                        <Check className="h-3 w-3" />
+                      ) : isCurrent ? (
+                        <Circle className="h-3 w-3 animate-pulse" />
+                      ) : null;
+                    })()}
                   </motion.span>
                   <span className="max-w-[140px] truncate">{s.title}</span>
                 </motion.button>
