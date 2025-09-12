@@ -1,12 +1,7 @@
 "use client";
 
 import { BackLink } from "@/components/app/back-link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useUser } from "@clerk/nextjs";
-import { Check, Trophy } from "lucide-react";
-import { toast } from "sonner";
-import Confetti from "react-confetti";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,14 +10,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { DatePicker } from "@/components/ui/date-picker";
+import { useUser } from "@clerk/nextjs";
+import { motion } from "framer-motion";
+import { Trophy } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Confetti from "react-confetti";
+import { toast } from "sonner";
 
+import {
+  cancelIncidentReminders,
+  ensureIncidentRemindersScheduled,
+} from "@/lib/reminders";
+import { AddressStep } from "./_components/AddressStep";
 import { AgreementSection, AgreementsForm } from "./_components/AgreementsForm";
+import { DateOfBirthStep } from "./_components/DateOfBirthStep";
+import { EmailStep } from "./_components/EmailStep";
+import { FullNameStep } from "./_components/FullNameStep";
 import { IncidentVoice } from "./_components/IncidentVoice";
 import { MedicalVoice } from "./_components/MedicalVoice";
+import { PhoneStep } from "./_components/PhoneStep";
 import { ReviewSection } from "./_components/ReviewSection";
 import { StepHeader } from "./_components/StepHeader";
 import { UploadSection, UploadsForm } from "./_components/UploadsForm";
@@ -33,21 +39,17 @@ import {
   type UploadItem,
 } from "./model";
 import {
-  cancelIncidentReminders,
-  ensureIncidentRemindersScheduled,
-} from "@/lib/reminders";
-import {
-  STEP_TITLES,
-  getCurrentStepValidation,
-  TOTAL_QUESTIONS,
   SECTION_STARTS,
+  STEP_TITLES,
+  TOTAL_QUESTIONS,
+  checkSectionCompletion,
+  getCompletedSteps,
+  getCurrentStepValidation,
+  getProgress,
   getSectionFromQuestion,
+  isLastStep as isLastStepFn,
   isQuestionnaireActive as isQuestionnaireActiveFn,
   isQuestionnaireComplete as isQuestionnaireCompleteFn,
-  isLastStep as isLastStepFn,
-  getProgress,
-  getCompletedSteps,
-  checkSectionCompletion,
 } from "./utils";
 
 export default function IntakePage() {
@@ -167,31 +169,6 @@ export default function IntakePage() {
     [state, step]
   );
 
-  // Success animation component for form fields
-  const FieldSuccessIndicator = ({ show }: { show: boolean }) => (
-    <AnimatePresence>
-      {show && (
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 500, damping: 25 }}
-          className="absolute right-2 top-1/2 -translate-y-1/2"
-        >
-          <motion.div
-            animate={{
-              rotate: [0, 10, -10, 0],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{ duration: 0.5 }}
-          >
-            <Check className="h-4 w-4 text-green-500" />
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-
   const next = useCallback(() => {
     const nextStep = Math.min(step + 1, TOTAL_QUESTIONS);
     const completedSectionIndex = checkSectionCompletion(state, step, nextStep);
@@ -241,153 +218,65 @@ export default function IntakePage() {
   const stepRenderers = useMemo(
     () => [
       // Step 0: Full name
-      () => {
-        const full = [state.personal.firstName, state.personal.lastName]
-          .filter(Boolean)
-          .join(" ");
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.4,
-              ease: [0.25, 0.46, 0.45, 0.94],
-            }}
-          >
-            <Label htmlFor="fullName">Full name</Label>
-            <Input
-              id="fullName"
-              placeholder="e.g., Jane Doe"
-              value={full}
-              autoFocus
-              onChange={(e) => {
-                const raw = e.target.value.trim();
-                if (!raw) {
-                  setState((s) => ({
-                    ...s,
-                    personal: {
-                      ...s.personal,
-                      firstName: "",
-                      lastName: "",
-                    },
-                  }));
-                  return;
-                }
-                const parts = raw.split(/\s+/);
-                const first = parts[0] || "";
-                const last = parts.slice(1).join(" ");
-                setState((s) => ({
-                  ...s,
-                  personal: {
-                    ...s.personal,
-                    firstName: first,
-                    lastName: last,
-                  },
-                }));
-              }}
-            />
-          </motion.div>
-        );
-      },
+      () => (
+        <FullNameStep
+          firstName={state.personal.firstName}
+          lastName={state.personal.lastName}
+          onChange={(data) =>
+            setState((s) => ({
+              ...s,
+              personal: { ...s.personal, ...data },
+            }))
+          }
+        />
+      ),
       // Step 1: Email
       () => (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: 0.4,
-            ease: [0.25, 0.46, 0.45, 0.94],
-          }}
-        >
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={state.personal.email}
-            autoFocus
-            onChange={(e) =>
-              setState((s) => ({
-                ...s,
-                personal: { ...s.personal, email: e.target.value },
-              }))
-            }
-          />
-        </motion.div>
+        <EmailStep
+          email={state.personal.email}
+          onChange={(data) =>
+            setState((s) => ({
+              ...s,
+              personal: { ...s.personal, ...data },
+            }))
+          }
+        />
       ),
       // Step 2: Phone
       () => (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: 0.4,
-            ease: [0.25, 0.46, 0.45, 0.94],
-          }}
-        >
-          <Label htmlFor="phone">Phone</Label>
-          <Input
-            id="phone"
-            placeholder="(555) 555-5555"
-            value={state.personal.phone}
-            autoFocus
-            onChange={(e) =>
-              setState((s) => ({
-                ...s,
-                personal: { ...s.personal, phone: e.target.value },
-              }))
-            }
-          />
-        </motion.div>
+        <PhoneStep
+          phone={state.personal.phone}
+          onChange={(data) =>
+            setState((s) => ({
+              ...s,
+              personal: { ...s.personal, ...data },
+            }))
+          }
+        />
       ),
       // Step 3: Date of birth
       () => (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: 0.4,
-            ease: [0.25, 0.46, 0.45, 0.94],
-          }}
-        >
-          <Label htmlFor="dob">Date of birth</Label>
-          <DatePicker
-            id="dob"
-            value={state.personal.dob}
-            onChange={(v) =>
-              setState((s) => ({
-                ...s,
-                personal: { ...s.personal, dob: v },
-              }))
-            }
-          />
-        </motion.div>
+        <DateOfBirthStep
+          dob={state.personal.dob}
+          onChange={(data) =>
+            setState((s) => ({
+              ...s,
+              personal: { ...s.personal, ...data },
+            }))
+          }
+        />
       ),
       // Step 4: Address
       () => (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: 0.4,
-            ease: [0.25, 0.46, 0.45, 0.94],
-          }}
-        >
-          <Label htmlFor="address">Address</Label>
-          <Input
-            id="address"
-            value={state.personal.address}
-            autoFocus
-            onChange={(e) =>
-              setState((s) => ({
-                ...s,
-                personal: {
-                  ...s.personal,
-                  address: e.target.value,
-                },
-              }))
-            }
-          />
-        </motion.div>
+        <AddressStep
+          address={state.personal.address}
+          onChange={(data) =>
+            setState((s) => ({
+              ...s,
+              personal: { ...s.personal, ...data },
+            }))
+          }
+        />
       ),
       // Step 5: Incident voice
       () => (
