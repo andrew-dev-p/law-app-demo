@@ -40,8 +40,16 @@ export const dateOfBirthSchema = z.object({
   dob: z
     .string()
     .min(1, "Date of birth is required")
-    .refine((date) => {
+    .superRefine((date, ctx) => {
       const parsed = new Date(date);
+      if (isNaN(parsed.getTime())) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Please enter a valid date",
+        });
+        return;
+      }
+
       const now = new Date();
       const minAge = new Date(
         now.getFullYear() - 120,
@@ -54,8 +62,18 @@ export const dateOfBirthSchema = z.object({
         now.getDate()
       );
 
-      return parsed >= minAge && parsed <= maxAge;
-    }, "You must be between 18 and 120 years old"),
+      if (parsed < minAge) {
+        ctx.addIssue({
+          code: "custom",
+          message: "You must be at most 120 years old",
+        });
+      } else if (parsed > maxAge) {
+        ctx.addIssue({
+          code: "custom",
+          message: "You must be at least 18 years old",
+        });
+      }
+    }),
 });
 
 export const addressSchema = z.object({
