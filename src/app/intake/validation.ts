@@ -6,22 +6,18 @@ const phoneRegex =
   /^(\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})$/;
 
 export const fullNameSchema = z.object({
-  firstName: z
+  fullName: z
     .string()
-    .min(1, "First name is required")
-    .max(50, "First name must be less than 50 characters")
+    .min(1, "Full name is required")
+    .max(100, "Full name must be less than 100 characters")
     .regex(
       /^[a-zA-Z\s'-]+$/,
-      "First name can only contain letters, spaces, hyphens, and apostrophes"
-    ),
-  lastName: z
-    .string()
-    .min(1, "Last name is required")
-    .max(50, "Last name must be less than 50 characters")
-    .regex(
-      /^[a-zA-Z\s'-]+$/,
-      "Last name can only contain letters, spaces, hyphens, and apostrophes"
-    ),
+      "Name can only contain letters, spaces, hyphens, and apostrophes"
+    )
+    .refine((name) => {
+      const words = name.trim().split(/\s+/);
+      return words.length === 2;
+    }, "Please enter exactly first name and last name (2 words only)"),
 });
 
 export const emailSchema = z.object({

@@ -1,4 +1,29 @@
 import { type IntakeState } from "./model";
+import {
+  fullNameSchema,
+  emailSchema,
+  phoneSchema,
+  dateOfBirthSchema,
+  addressSchema,
+} from "./validation";
+
+// Utility function to split full name into first and last name
+export const splitFullName = (
+  fullName: string
+): { firstName: string; lastName: string } => {
+  const words = fullName.trim().split(/\s+/);
+  if (words.length === 2) {
+    return {
+      firstName: words[0],
+      lastName: words[1],
+    };
+  }
+  // Fallback if validation somehow fails
+  return {
+    firstName: words[0] || "",
+    lastName: words.slice(1).join(" ") || "",
+  };
+};
 
 export const STEP_TITLES = [
   "What is your name?",
@@ -18,8 +43,30 @@ export const STEP_TITLES = [
 ];
 
 export const getValidationList = (state: IntakeState) => {
-  const hasPersonalName =
-    state.personal.firstName.trim() && state.personal.lastName.trim();
+  // Validation functions using Zod schemas
+  const validateFullName = () => {
+    const fullName = [state.personal.firstName, state.personal.lastName]
+      .filter(Boolean)
+      .join(" ");
+    return fullNameSchema.safeParse({ fullName }).success;
+  };
+
+  const validateEmail = () => {
+    return emailSchema.safeParse({ email: state.personal.email }).success;
+  };
+
+  const validatePhone = () => {
+    return phoneSchema.safeParse({ phone: state.personal.phone }).success;
+  };
+
+  const validateDateOfBirth = () => {
+    return dateOfBirthSchema.safeParse({ dob: state.personal.dob }).success;
+  };
+
+  const validateAddress = () => {
+    return addressSchema.safeParse({ address: state.personal.address }).success;
+  };
+
   const docHas = (cat: "license" | "insurance" | "evidence") =>
     state.uploads.some((u) => u.category === cat);
   const agreeOk = (k: "hipaa" | "representation" | "fee") => {
@@ -28,20 +75,29 @@ export const getValidationList = (state: IntakeState) => {
   };
 
   return [
-    Boolean(hasPersonalName),
-    Boolean(state.personal.email.trim()),
-    true, // phone is optional
-    true, // dob is optional
-    true, // address is optional
-    Boolean(state.incident.transcript && state.incident.transcript.trim()),
-    Boolean(state.medical.transcript && state.medical.transcript.trim()),
-    docHas("license"),
-    docHas("insurance"),
-    docHas("evidence"),
-    agreeOk("hipaa"),
-    agreeOk("representation"),
-    agreeOk("fee"),
-    Boolean(state.agreed),
+    // Personal Information Section
+    validateFullName(), // Step 0: Full name (exactly 2 words: first + last)
+    validateEmail(), // Step 1: Email address (valid email format)
+    validatePhone(), // Step 2: Phone number (US format validation)
+    validateDateOfBirth(), // Step 3: Date of birth (18-120 years old)
+    validateAddress(), // Step 4: Current address
+
+    // Incident & Medical Information Section
+    Boolean(state.incident.transcript && state.incident.transcript.trim()), // Step 5: Incident details voice recording
+    Boolean(state.medical.transcript && state.medical.transcript.trim()), // Step 6: Medical/referral voice recording
+
+    // Document Upload Section
+    docHas("license"), // Step 7: Driver's license upload
+    docHas("insurance"), // Step 8: Insurance cards upload
+    docHas("evidence"), // Step 9: Accident/injury photos upload
+
+    // Legal Agreements Section
+    agreeOk("hipaa"), // Step 10: HIPAA release agreement signed
+    agreeOk("representation"), // Step 11: Legal representation agreement signed
+    agreeOk("fee"), // Step 12: Contingency fee agreement signed
+
+    // Final Review & Submission
+    Boolean(state.agreed), // Step 13: Final agreement to submit intake
   ];
 };
 

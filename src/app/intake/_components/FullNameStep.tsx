@@ -7,11 +7,12 @@ import { motion } from "framer-motion";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { fullNameSchema, type FullNameFormData } from "../validation";
+import { splitFullName } from "../utils";
 
 interface FullNameStepProps {
   firstName: string;
   lastName: string;
-  onChange: (data: FullNameFormData) => void;
+  onChange: (data: { firstName: string; lastName: string }) => void;
 }
 
 export function FullNameStep({
@@ -26,23 +27,19 @@ export function FullNameStep({
   } = useForm<FullNameFormData>({
     resolver: zodResolver(fullNameSchema),
     defaultValues: {
-      firstName,
-      lastName,
+      fullName: [firstName, lastName].filter(Boolean).join(" "),
     },
     mode: "onChange",
   });
 
-  // Watch for changes and call onChange
+  // Watch for changes and call onChange with split values
   const watchedValues = watch();
   useEffect(() => {
-    if (isValid) {
-      onChange(watchedValues);
+    if (isValid && watchedValues.fullName) {
+      const split = splitFullName(watchedValues.fullName);
+      onChange(split);
     }
   }, [watchedValues, isValid, onChange]);
-
-  const fullName = [watchedValues.firstName, watchedValues.lastName]
-    .filter(Boolean)
-    .join(" ");
 
   return (
     <motion.div
@@ -57,36 +54,11 @@ export function FullNameStep({
       <Input
         id="fullName"
         placeholder="e.g., Jane Doe"
-        value={fullName}
         autoFocus
-        {...register("firstName")}
-        onChange={(e) => {
-          const raw = e.target.value.trim();
-          if (!raw) {
-            // Clear both fields if input is empty
-            return;
-          }
-          const parts = raw.split(/\s+/);
-          const first = parts[0] || "";
-          const last = parts.slice(1).join(" ");
-
-          // Update the form values
-          const event = {
-            target: { value: first },
-          } as React.ChangeEvent<HTMLInputElement>;
-          register("firstName").onChange(event);
-
-          const lastEvent = {
-            target: { value: last },
-          } as React.ChangeEvent<HTMLInputElement>;
-          register("lastName").onChange(lastEvent);
-        }}
+        {...register("fullName")}
       />
-      {errors.firstName && (
-        <p className="text-sm text-red-600 mt-1">{errors.firstName.message}</p>
-      )}
-      {errors.lastName && (
-        <p className="text-sm text-red-600 mt-1">{errors.lastName.message}</p>
+      {errors.fullName && (
+        <p className="text-sm text-red-600 mt-1">{errors.fullName.message}</p>
       )}
     </motion.div>
   );

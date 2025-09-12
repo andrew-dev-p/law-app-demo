@@ -84,9 +84,6 @@ export function PhoneStep({ phone, onChange }: PhoneStepProps) {
       {errors.phone && (
         <p className="text-sm text-red-600 mt-1">{errors.phone.message}</p>
       )}
-      <p className="text-xs text-muted-foreground mt-1">
-        Enter a valid US phone number
-      </p>
     </motion.div>
   );
 }
