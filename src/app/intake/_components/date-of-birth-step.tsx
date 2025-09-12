@@ -54,6 +54,7 @@ export function DateOfBirthStep({ dob, onChange }: DateOfBirthStepProps) {
         id="dob"
         value={watchedValues.dob}
         onChange={handleDateChange}
+        autoFocus
       />
       {errors.dob && (
         <p className="text-sm text-red-600 mt-1">{errors.dob.message}</p>

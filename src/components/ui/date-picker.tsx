@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 function formatDate(date: Date | undefined) {
   if (!date) {
     return "";
@@ -25,7 +26,11 @@ function isValidDate(date: Date | undefined) {
   }
   return !isNaN(date.getTime());
 }
-interface DatePickerProps {
+interface DatePickerProps
+  extends Omit<
+    React.ComponentProps<typeof Input>,
+    "value" | "onChange" | "placeholder"
+  > {
   id?: string;
   value?: string;
   onChange?: (value: string) => void;
@@ -37,6 +42,8 @@ export function DatePicker({
   value: externalValue,
   onChange,
   placeholder = "Select date",
+  className,
+  ...inputProps
 }: DatePickerProps) {
   // Parse external value to Date object
   const parseExternalDate = (value: string | undefined): Date | undefined => {
@@ -92,7 +99,7 @@ export function DatePicker({
           id={id}
           value={value}
           placeholder={placeholder}
-          className="bg-background pr-10"
+          className={cn("bg-background pr-10", className)}
           onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "ArrowDown") {
@@ -100,6 +107,7 @@ export function DatePicker({
               setOpen(true);
             }
           }}
+          {...inputProps}
         />
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>

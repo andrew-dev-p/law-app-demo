@@ -21,17 +21,20 @@ import {
   cancelIncidentReminders,
   ensureIncidentRemindersScheduled,
 } from "@/lib/reminders";
-import { AddressStep } from "./_components/AddressStep";
-import { AgreementSection, AgreementsForm } from "./_components/AgreementsForm";
-import { DateOfBirthStep } from "./_components/DateOfBirthStep";
-import { EmailStep } from "./_components/EmailStep";
-import { FullNameStep } from "./_components/FullNameStep";
-import { IncidentVoice } from "./_components/IncidentVoice";
-import { MedicalVoice } from "./_components/MedicalVoice";
-import { PhoneStep } from "./_components/PhoneStep";
-import { ReviewSection } from "./_components/ReviewSection";
-import { StepHeader } from "./_components/StepHeader";
-import { UploadSection, UploadsForm } from "./_components/UploadsForm";
+import { AddressStep } from "./_components/address-step";
+import {
+  AgreementSection,
+  AgreementsForm,
+} from "./_components/agreements-form";
+import { DateOfBirthStep } from "./_components/date-of-birth-step";
+import { EmailStep } from "./_components/email-step";
+import { FullNameStep } from "./_components/full-name-step";
+import { IncidentVoice } from "./_components/incident-voice";
+import { MedicalVoice } from "./_components/medical-voice";
+import { PhoneStep } from "./_components/phone-step";
+import { ReviewSection } from "./_components/review-section";
+import { StepHeader } from "./_components/step-header";
+import { UploadSection, UploadsForm } from "./_components/uploads-form";
 import {
   defaultState,
   steps,
