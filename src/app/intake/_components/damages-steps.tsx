@@ -17,10 +17,10 @@ export function PropertyDamageStep({
   onChange,
 }: {
   value: {
-    propertyDamage?: number | null;
-    repair?: number | null;
-    depreciation?: number | null;
-    totaled?: number | null;
+    propertyDamage?: number;
+    repair?: number;
+    depreciation?: number;
+    totaled?: number;
   };
   onChange: (v: any) => void;
 }) {
@@ -101,10 +101,10 @@ export function BillsStep({
   onChange,
 }: {
   value: {
-    bills?: number | null;
-    xrayBill?: number | null;
-    ambulanceBill?: number | null;
-    hospitalBill?: number | null;
+    bills?: number;
+    xrayBill?: number;
+    ambulanceBill?: number;
+    hospitalBill?: number;
   };
   onChange: (v: any) => void;
 }) {
@@ -185,10 +185,10 @@ export function OtherCostsStep({
   onChange,
 }: {
   value: {
-    otherMedicalCosts?: number | null;
-    mdBills?: number | null;
-    otherBills?: number | null;
-    prescriptionCosts?: number | null;
+    otherMedicalCosts?: number;
+    mdBills?: number;
+    otherBills?: number;
+    prescriptionCosts?: number;
   };
   onChange: (v: any) => void;
 }) {

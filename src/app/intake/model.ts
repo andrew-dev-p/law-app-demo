@@ -6,7 +6,57 @@ export enum MaritalStatus {
 }
 
 export const US_STATE_OPTIONS = [
-  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC",
+  "AL",
+  "AK",
+  "AZ",
+  "AR",
+  "CA",
+  "CO",
+  "CT",
+  "DE",
+  "FL",
+  "GA",
+  "HI",
+  "ID",
+  "IL",
+  "IN",
+  "IA",
+  "KS",
+  "KY",
+  "LA",
+  "ME",
+  "MD",
+  "MA",
+  "MI",
+  "MN",
+  "MS",
+  "MO",
+  "MT",
+  "NE",
+  "NV",
+  "NH",
+  "NJ",
+  "NM",
+  "NY",
+  "NC",
+  "ND",
+  "OH",
+  "OK",
+  "OR",
+  "PA",
+  "RI",
+  "SC",
+  "SD",
+  "TN",
+  "TX",
+  "UT",
+  "VT",
+  "VA",
+  "WA",
+  "WV",
+  "WI",
+  "WY",
+  "DC",
 ];
 export type USStateCode = (typeof US_STATE_OPTIONS)[number];
 
@@ -74,7 +124,7 @@ export type FamilyStatusInfo = {
   maritalStatus: MaritalStatus;
   spouseName?: string;
   spousePhone?: string;
-  numberOfChildren?: number | null;
+  numberOfChildren?: number | string;
   childrenAges?: string;
   minorCompanionsNames?: string;
 };
@@ -95,18 +145,18 @@ export type InsuranceEmploymentInfo = {
 };
 
 export type DamagesCostsInfo = {
-  propertyDamage?: number | null;
-  repair?: number | null;
-  depreciation?: number | null;
-  totaled?: number | null;
-  bills?: number | null;
-  xrayBill?: number | null;
-  ambulanceBill?: number | null;
-  hospitalBill?: number | null;
-  otherMedicalCosts?: number | null;
-  mdBills?: number | null;
-  otherBills?: number | null;
-  prescriptionCosts?: number | null;
+  propertyDamage?: number;
+  repair?: number;
+  depreciation?: number;
+  totaled?: number;
+  bills?: number;
+  xrayBill?: number;
+  ambulanceBill?: number;
+  hospitalBill?: number;
+  otherMedicalCosts?: number;
+  mdBills?: number;
+  otherBills?: number;
+  prescriptionCosts?: number;
 };
 
 export type WitnessesAttorneysInfo = {
@@ -167,7 +217,7 @@ export const defaultState: IntakeState = {
     maritalStatus: MaritalStatus.Single,
     spouseName: "",
     spousePhone: "",
-    numberOfChildren: null,
+    numberOfChildren: undefined,
     childrenAges: "",
     minorCompanionsNames: "",
   },
@@ -211,18 +261,18 @@ export const defaultState: IntakeState = {
     employerAddress: "",
   },
   damages: {
-    propertyDamage: null,
-    repair: null,
-    depreciation: null,
-    totaled: null,
-    bills: null,
-    xrayBill: null,
-    ambulanceBill: null,
-    hospitalBill: null,
-    otherMedicalCosts: null,
-    mdBills: null,
-    otherBills: null,
-    prescriptionCosts: null,
+    propertyDamage: undefined,
+    repair: undefined,
+    depreciation: undefined,
+    totaled: undefined,
+    bills: undefined,
+    xrayBill: undefined,
+    ambulanceBill: undefined,
+    hospitalBill: undefined,
+    otherMedicalCosts: undefined,
+    mdBills: undefined,
+    otherBills: undefined,
+    prescriptionCosts: undefined,
   },
   witnessesAttorneys: {
     witnesses: "",

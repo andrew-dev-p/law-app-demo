@@ -229,7 +229,7 @@ export const incidentDateSchema = z.object({
 
 export const incidentStateSchema = z.object({
   state: z.enum(US_STATE_OPTIONS as [string, ...string[]], {
-    required_error: "State is required",
+    message: "State is required",
   }),
 });
 
@@ -247,9 +247,7 @@ export const incidentTypeRolePolicySchema = z.object({
 
 export const incidentEmsHospitalSchema = z
   .object({
-    emsAtScene: z
-      .boolean({ required_error: "Please select Yes or No" })
-      .nullable(),
+    emsAtScene: z.boolean({ message: "Please select Yes or No" }).nullable(),
     hospitalTransportedTo: z.string().optional(),
   })
   .superRefine((v, ctx) => {
@@ -344,7 +342,7 @@ export const householdAndUmSchema = z
   .object({
     householdPolicies: z.boolean().nullable().optional(),
     permissionOpenUmClaim: z
-      .boolean({ required_error: "Select Yes or No" })
+      .boolean({ message: "Select Yes or No" })
       .nullable(),
     umInsuranceCompany: z.string().optional(),
   })
@@ -369,7 +367,7 @@ export const householdAndUmSchema = z
 export const employmentLossSchema = z
   .object({
     lostIncomeOrMissedWork: z
-      .boolean({ required_error: "Select Yes or No" })
+      .boolean({ message: "Select Yes or No" })
       .nullable(),
     employerPhone: z.string().optional(),
     employerAddress: z.string().optional(),
@@ -455,7 +453,7 @@ export const witnessesSchema = z.object({
 export const attorneySchema = z
   .object({
     spokeToAnotherAttorney: z
-      .boolean({ required_error: "Select Yes or No" })
+      .boolean({ message: "Select Yes or No" })
       .nullable(),
     attorneyNameAddress: z.string().optional(),
   })

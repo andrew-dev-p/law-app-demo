@@ -10,7 +10,7 @@ import { childrenInfoSchema } from "../validation";
 
 interface ChildrenStepProps {
   value: {
-    numberOfChildren?: number | null;
+    numberOfChildren?: number | string;
     childrenAges?: string;
     minorCompanionsNames?: string;
   };
@@ -33,7 +33,8 @@ export function ChildrenStep({ value, onChange }: ChildrenStepProps) {
   useEffect(() => {
     if (!isValid) return;
     const equal =
-      (watched.numberOfChildren ?? null) === (value.numberOfChildren ?? null) &&
+      (watched.numberOfChildren ?? undefined) ===
+        (value.numberOfChildren ?? undefined) &&
       (watched.childrenAges || "") === (value.childrenAges || "") &&
       (watched.minorCompanionsNames || "") ===
         (value.minorCompanionsNames || "");
@@ -59,7 +60,7 @@ export function ChildrenStep({ value, onChange }: ChildrenStepProps) {
           onChange={(e) => {
             const raw = e.target.value;
             if (raw === "") {
-              setValue("numberOfChildren", null, { shouldValidate: true });
+              setValue("numberOfChildren", undefined, { shouldValidate: true });
               return;
             }
             const n = Number(raw);
