@@ -26,13 +26,15 @@ export function EmailStep({ email, onChange }: EmailStepProps) {
     mode: "onChange",
   });
 
-  // Watch for changes and call onChange
+  // Watch for changes and call onChange (only if value changed)
   const watchedValues = watch();
   useEffect(() => {
     if (isValid) {
-      onChange(watchedValues);
+      if (watchedValues.email !== email) {
+        onChange(watchedValues);
+      }
     }
-  }, [watchedValues, isValid, onChange]);
+  }, [watchedValues, isValid, onChange, email]);
 
   return (
     <motion.div

@@ -26,13 +26,15 @@ export function DateOfBirthStep({ dob, onChange }: DateOfBirthStepProps) {
     mode: "onChange",
   });
 
-  // Watch for changes and call onChange
+  // Watch for changes and call onChange (only if value changed)
   const watchedValues = watch();
   useEffect(() => {
     if (isValid && watchedValues.dob) {
-      onChange(watchedValues);
+      if (watchedValues.dob !== dob) {
+        onChange(watchedValues);
+      }
     }
-  }, [watchedValues, isValid, onChange]);
+  }, [watchedValues, isValid, onChange, dob]);
 
   const handleDateChange = (value: string) => {
     setValue("dob", value, { shouldValidate: true });

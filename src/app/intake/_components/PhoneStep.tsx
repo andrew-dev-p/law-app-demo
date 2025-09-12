@@ -27,13 +27,15 @@ export function PhoneStep({ phone, onChange }: PhoneStepProps) {
     mode: "onChange",
   });
 
-  // Watch for changes and call onChange
+  // Watch for changes and call onChange (only if value changed)
   const watchedValues = watch();
   useEffect(() => {
     if (isValid && watchedValues.phone) {
-      onChange(watchedValues);
+      if (watchedValues.phone !== phone) {
+        onChange(watchedValues);
+      }
     }
-  }, [watchedValues, isValid, onChange]);
+  }, [watchedValues, isValid, onChange, phone]);
 
   const formatPhoneNumber = (value: string) => {
     // Remove all non-digit characters

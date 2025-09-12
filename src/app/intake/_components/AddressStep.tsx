@@ -26,13 +26,15 @@ export function AddressStep({ address, onChange }: AddressStepProps) {
     mode: "onChange",
   });
 
-  // Watch for changes and call onChange
+  // Watch for changes and call onChange (only if value changed)
   const watchedValues = watch();
   useEffect(() => {
     if (isValid && watchedValues.address) {
-      onChange(watchedValues);
+      if (watchedValues.address !== address) {
+        onChange(watchedValues);
+      }
     }
-  }, [watchedValues, isValid, onChange]);
+  }, [watchedValues, isValid, onChange, address]);
 
   return (
     <motion.div

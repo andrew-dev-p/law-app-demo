@@ -32,14 +32,16 @@ export function FullNameStep({
     mode: "onChange",
   });
 
-  // Watch for changes and call onChange with split values
+  // Watch for changes and call onChange with split values (only if changed)
   const watchedValues = watch();
   useEffect(() => {
     if (isValid && watchedValues.fullName) {
       const split = splitFullName(watchedValues.fullName);
-      onChange(split);
+      if (split.firstName !== firstName || split.lastName !== lastName) {
+        onChange(split);
+      }
     }
-  }, [watchedValues, isValid, onChange]);
+  }, [watchedValues, isValid, onChange, firstName, lastName]);
 
   return (
     <motion.div

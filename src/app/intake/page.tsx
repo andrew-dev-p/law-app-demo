@@ -169,6 +169,11 @@ export default function IntakePage() {
     [state, step]
   );
 
+  const currentStepIsValid = useMemo(
+    () => getCurrentStepValidation(state, step),
+    [state, step]
+  );
+
   const next = useCallback(() => {
     const nextStep = Math.min(step + 1, TOTAL_QUESTIONS);
     const completedSectionIndex = checkSectionCompletion(state, step, nextStep);
@@ -392,15 +397,17 @@ export default function IntakePage() {
       const active = document.activeElement as HTMLElement | null;
       if (active && active.tagName === "BUTTON") return;
 
-      const isValid = getCurrentStepValidation(state, step);
-      if (!isLastStep && isValid) {
+      if (!isLastStep && currentStepIsValid) {
         e.preventDefault();
         next();
       }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [step, state, next, isLastStep]);
+  }, [step, state, next, isLastStep, currentStepIsValid]);
+
+  // Debug: uncomment for local troubleshooting of validation per step
+  // console.log(step, currentStepIsValid);
 
   return (
     <div className="w-full p-6 relative">
@@ -475,21 +482,20 @@ export default function IntakePage() {
             Back
           </Button>
           {(() => {
-            const isValid = getCurrentStepValidation(state, step);
             if (!isLastStep) {
               return (
                 <div className="flex items-center gap-3">
                   <p className="text-xs text-muted-foreground">
                     Press <span className="font-bold">Enter</span> to continue
                   </p>
-                  <Button onClick={next} disabled={!isValid}>
+                  <Button onClick={next} disabled={!currentStepIsValid}>
                     Continue
                   </Button>
                 </div>
               );
             }
             return (
-              <Button onClick={submit} disabled={!isValid}>
+              <Button onClick={submit} disabled={!currentStepIsValid}>
                 Submit Intake
               </Button>
             );
