@@ -99,16 +99,19 @@ export default function IntakePage() {
     if (!user) return;
     const alreadyCompleted = Boolean(user?.unsafeMetadata?.setupCompleted);
     if (!alreadyCompleted) {
-      user
-        .update({
-          unsafeMetadata: {
-            ...(user.unsafeMetadata || {}),
-            setupCompleted: true,
-          },
-        })
-        .catch(() => {
+      const updateUser = async () => {
+        try {
+          await user.update({
+            unsafeMetadata: {
+              ...(user.unsafeMetadata || {}),
+              setupCompleted: true,
+            },
+          });
+        } catch {
           // Silently ignore errors
-        });
+        }
+      };
+      updateUser();
     }
   }, [user]);
 
