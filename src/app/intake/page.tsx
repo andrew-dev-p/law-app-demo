@@ -94,6 +94,24 @@ export default function IntakePage() {
 
   const [step, setStep] = useState<number>(0);
 
+  // Mark setup as completed when user reaches intake page
+  useEffect(() => {
+    if (!user) return;
+    const alreadyCompleted = Boolean(user?.unsafeMetadata?.setupCompleted);
+    if (!alreadyCompleted) {
+      user
+        .update({
+          unsafeMetadata: {
+            ...(user.unsafeMetadata || {}),
+            setupCompleted: true,
+          },
+        })
+        .catch(() => {
+          // Silently ignore errors
+        });
+    }
+  }, [user]);
+
   // TODO: Remove localStorage for demo
   const [state, setState] = useState<IntakeState>(() => defaultState);
 
