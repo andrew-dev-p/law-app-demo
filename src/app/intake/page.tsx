@@ -535,9 +535,10 @@ export default function IntakePage() {
       )}
       <BackLink className="mb-3" />
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Client Intake</h1>
+        <h1 className="text-2xl font-semibold">Welcome to Injuro</h1>
         <p className="text-sm text-muted-foreground">
-          Provide details so we can advance your claim.
+          Our team is ready to assist you. Let&apos;s get started by collecting
+          basic information to file your claim.
         </p>
       </div>
 
